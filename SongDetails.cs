@@ -289,24 +289,28 @@ namespace SongDetailsCache {
 		static unsafe void Process(Stream stream, bool force = true) {
 			if(!force && songs != null)
 				return;
-
+#if DEBUG
 			var sw = new Stopwatch(); sw.Start();
+#endif
 
 			var parsed = Serializer.Deserialize<SongProto[]>(stream);
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Parsed {0} songs in {1}ms", parsed.Length, sw.ElapsedMilliseconds);
 
-			if(!force && songs != null)
-				return;
-
 			sw.Restart();
+#endif
+
+			if(parsed.Length == 0)
+				throw new Exception("Parsing data yielded no songs");
+
 
 			// Stuff gotta be sorted for Binary search (Key lookup) to work. The Data is presorted but this is a failafe
 			parsed = parsed.OrderBy(x => x.mapId).ToArray();
-
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Sorted in {1}ms", parsed.Length, sw.ElapsedMilliseconds);
 
 			sw.Restart();
-
+#endif
 			GC.Collect();
 			var newSongs = new Song[parsed.Length];
 
@@ -321,9 +325,9 @@ namespace SongDetailsCache {
 			var newDiffs = new SongDifficulty[parsed.Sum(x => x.difficulties?.Length ?? 0)];
 
 			uint diffIndex = 0;
-
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Allocated memory...");
-
+#endif
 			for(uint i = 0; i < parsed.Length; i++) {
 				var parsedSong = parsed[i];
 
@@ -344,24 +348,27 @@ namespace SongDetailsCache {
 				foreach(var diff in parsedSong.difficulties)
 					newDiffs[diffIndex++] = new SongDifficulty(i, diff);
 			}
-
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Did basic parsing...");
+#endif
 
 			// Build LUT for fast hash lookup
 			var sortedByHashes = newSongs.OrderBy(x => *(uint*)(newHashes + (x.index * HASH_SIZE_BYTES))).ToArray();
 
 			for(int i = 0; i < newSongs.Length; i++)
 				newHashesLUT[i] = sortedByHashes[i].index;
-
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Built LUT...");
-
+#endif
 			if(!force && songs != null) {
 				Marshal.FreeHGlobal((IntPtr)newHashes);
 				Marshal.FreeHGlobal((IntPtr)newHashesLUT);
 				return;
 			}
 
+#if DEBUG
 			sw.Stop();
+#endif
 			songs = newSongs;
 
 			keys = newKeys;
@@ -380,7 +387,9 @@ namespace SongDetailsCache {
 
 			difficulties = newDiffs;
 
+#if DEBUG
 			Console.WriteLine("[SongDetailsCache] Transforming data took {0}ms, got {1} diffs", sw.ElapsedMilliseconds, difficulties.Length);
+#endif
 
 			if(isDataAvailable)
 				dataAvailableOrUpdated?.Invoke();
