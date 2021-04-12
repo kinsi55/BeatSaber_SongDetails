@@ -149,7 +149,7 @@ namespace SongDetailsCache {
 			};
 
 			if(!isLoading && (isLoading = true))
-				SongDetailsContainer.Load().Start();
+				Task.Run(() => SongDetailsContainer.Load());
 
 			return resultCompletionSource.Task;
 		}
