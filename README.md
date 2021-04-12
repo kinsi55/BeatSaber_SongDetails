@@ -41,4 +41,4 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 	- Star rating
 	- Approximate achieveable #1 PP value
 		- Uses a custom curve
-		- Usually the error is way less than 5pp of the actual #1 score
+		- Usually the error is way less than 5pp of the actual #1 score but some outliers exist
