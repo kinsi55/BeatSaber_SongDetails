@@ -1,7 +1,7 @@
 # BeatSaber_SongDetails
 A C# library which provides access to the ScoreSaber and BeatSaver information of all Songs using a cached local database which is provided by [Andruzzzhka](https://github.com/andruzzzhka/BeatSaberScrappedData), thanks a lot!
 
-Can be used Standalone or as a BeatSaber Library. Aims to be highly optimized and allocate as little reference types as possible and passes value types by reference wherever possible.
+Can be used Standalone or as a BeatSaber Library. Aims to be highly optimized by allocating as little reference types as possible and passing value types by reference wherever possible.
 
 Requires Protobuf.
 
