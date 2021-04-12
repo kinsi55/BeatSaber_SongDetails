@@ -239,7 +239,8 @@ namespace SongDetailsCache {
 			return true;
 		}
 
-		public static void Init() => Load(false);
+		static bool didInit = false;
+		public static void Init() { if(!didInit && (didInit = true)) Load(false); }
 
 		internal static void Load(bool reload = false) {
 			if(!reload && isDataAvailable)
