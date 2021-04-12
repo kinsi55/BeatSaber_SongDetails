@@ -9,12 +9,10 @@ Requires Protobuf.
 
 Everything is exposed in the `SongDetailsCache.SongDetails` class.
 
-When using this library make sure to call Init() and wait for the data to be loaded. Calling Init() multiple times has no effect.
+To use this library you aquire an Instance of the SongDetails class by calling `SongDetails.Init()` and awaiting the result. This will handle possibly downloading / parsing the database if it is not cached in memory yet, otherwise it will reuse what is already there.
 
-1. dataAvailableOrUpdated (Event) => Called whenever the cached data is either loaded or updated. Once this is called you should assume that any Indexes *Or existing Songs / Difficulties you have a reference to* are invalid and should be re-aquired.
-3. isDataAvailable => Make sure this is true before trying to access anything!
-2. songs => array of all songs
-3. difficulties => array of all difficulties of all songs. Due to how this library is built you should ideally not access a songs `.difficulties` for iteration purposes but instead iterate over difficulties and access the `.song`. Alternatively you can use the exposed convenience methods like `FindSongs` to find all Songs based off certain difficulty criteria.
+1. songs => Custom, readonly array of all songs. Has exposed methods for finding songs based off their Map ID or Hash
+2. difficulties => Custom, readonly array of all difficulties of all songs. Due to how this library is built you should ideally not access `<Song>.difficulties` for iteration purposes but instead iterate over difficulties and access `<SongDifficulty>.song`. Alternatively you can use the exposed convenience methods of `SongDetails` like `FindSongs` to find all Songs based off certain difficulty criteria.
 
 ## Available information
 
