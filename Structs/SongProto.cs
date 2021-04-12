@@ -77,16 +77,16 @@ namespace SongDetailsCache.Structs {
         /// <summary>
         /// Hexadecimal representation of the Map ID
         /// </summary>
-        public readonly string key => SongDetails.keys[index].ToString("x");
+        public readonly string key => SongDetailsContainer.keys[index].ToString("x");
 
         /// <summary>
         /// Hexadecimal representation of the Map Hash
         /// </summary>
         public readonly string hash => HexUtil.SongBytesToHash(index); // This should probably not be here.
 
-        public ref readonly string songName => ref SongDetails.songNames[index];
-        public ref readonly string songAuthorName => ref SongDetails.songAuthorNames[index];
-        public ref readonly string levelAuthorName => ref SongDetails.levelAuthorNames[index];
+        public ref readonly string songName => ref SongDetailsContainer.songNames[index];
+        public ref readonly string songAuthorName => ref SongDetailsContainer.songAuthorNames[index];
+        public ref readonly string levelAuthorName => ref SongDetailsContainer.levelAuthorNames[index];
 
         /// <summary>
         /// Helper method to get a difficulty of this Song
@@ -96,7 +96,7 @@ namespace SongDetailsCache.Structs {
 		/// <returns>True if the requested difficulty exists, false otherwise</returns>
         public bool GetDifficulty(out SongDifficulty difficulty, MapDifficulty diff, MapCharacteristic characteristic = MapCharacteristic.Standard) {
             for(int i = 0; i < diffCount; i++) {
-                ref var x = ref SongDetails.difficulties[i + diffOffset];
+                ref var x = ref SongDetailsContainer.difficulties[i + diffOffset];
 
                 if(x.difficulty == diff && x.characteristic == characteristic) {
                     difficulty = x;
@@ -104,13 +104,13 @@ namespace SongDetailsCache.Structs {
                 }
             }
 
-            difficulty = SongDetails.difficulties[0];
+            difficulty = SongDetailsContainer.difficulties[0];
             return false;
         }
 
         /// <summary>
         /// All difficulties that belong to this Song
         /// </summary>
-        public IReadOnlyCollection<SongDifficulty> difficulties => new ArraySegment<SongDifficulty>(SongDetails.difficulties, (int)diffOffset, diffCount);
+        public IReadOnlyCollection<SongDifficulty> difficulties => new ArraySegment<SongDifficulty>(SongDetailsContainer.difficulties, (int)diffOffset, diffCount);
     }
 }

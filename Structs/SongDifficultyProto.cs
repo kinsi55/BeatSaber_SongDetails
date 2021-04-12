@@ -81,7 +81,7 @@ namespace SongDetailsCache.Structs {
         /// <summary>
         /// The Song this Difficulty belongs to
         /// </summary>
-        public ref Song song => ref SongDetails.songs[songIndex];
+        public ref Song song => ref SongDetailsContainer.songs[songIndex];
 
         /// <summary>
         /// Returns an approximated PP value of the possible #1 ScoreSaber score.

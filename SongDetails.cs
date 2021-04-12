@@ -7,59 +7,176 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
+using System.Collections;
 
 namespace SongDetailsCache {
-	public static class SongDetails {
-		internal const int HASH_SIZE_BYTES = 20;
+	public class DiffArray : IEnumerable<SongDifficulty> {
+		public SongDifficulty this[int i] => SongDetailsContainer.difficulties[i];
 
-		internal static uint[] keys = null;
-		internal unsafe static byte* hashBytes = null;
-		internal unsafe static uint* hashBytesLUT = null;
+		public IEnumerator<SongDifficulty> GetEnumerator() => SongDetailsContainer.difficulties.AsEnumerable().GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.songs.GetEnumerator();
 
-		internal static string[] songNames = null;
-		internal static string[] songAuthorNames = null;
-		internal static string[] levelAuthorNames = null;
+		internal DiffArray() { }
+	}
 
+	public class SongArray : IEnumerable<Song> {
+		public Song this[int i] => SongDetailsContainer.songs[i];
 
-		public static Song[] songs { get; private set; } = null;
-		public static SongDifficulty[] difficulties { get; private set; } = null;
+		public IEnumerator<Song> GetEnumerator() => SongDetailsContainer.songs.AsEnumerable().GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.songs.GetEnumerator();
+		
+		internal SongArray() { }
 
-
-
-		/// <summary>
-		/// Raised whenever SongDetails initially is initialized or updates its dataset
-		/// </summary>
-		public static Action dataAvailableOrUpdated;
 
 		/// <summary>
-		/// Returns if SongDetails is initialized has has loaded data
+		/// Gets a song using its Map Hash
 		/// </summary>
-		public static bool isDataAvailable => songs != null && songs.Length > 0;
+		/// <param name="hash">hexadecimal Map Hash, captialization does not matter</param>
+		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
+		/// <returns>True if the song was found, false otherwise</returns>
+		public unsafe bool FindByHash(string hash, out Song song) {
+			if(hash.Length != 40) {
+				song = SongDetailsContainer.songs[0];
+				return false;
+			}
+
+			fixed(byte* _a = HexUtil.ToBytes(hash)) {
+				uint c1 = *(uint*)_a;
+				long c2 = *(long*)(_a + 4);
+				long c3 = *(long*)(_a + 12);
+
+				bool comp(byte* a) {
+					return *(long*)(a + 4) == c2 &&
+							*(long*)(a + 12) == c3;
+				}
+
+				// This episode of optimization is sponsored by "Average"
+				// Will this become slower over time? Yes. Will this ever be slow? No.
+				uint searchNeedle = (uint)Math.Floor(SongDetailsContainer.songs.Length * (c1 / (float)(uint.MaxValue)));
+
+				// Yeaaahh it would be better to step left right left right in an alternating fashion but
+				// this is already way faster than it needs to be and less complicated :) Maybe later.
+				for(uint i = searchNeedle; i < SongDetailsContainer.songs.Length; i++) {
+					uint songIndex = SongDetailsContainer.hashBytesLUT[i];
+
+					byte* hBytes = SongDetailsContainer.hashBytes + (songIndex * SongDetailsContainer.HASH_SIZE_BYTES);
+					uint a = *(uint*)hBytes;
+
+					if(a > c1)
+						break;
+					else if(a != c1)
+						continue;
+
+					if(comp(hBytes)) {
+						song = SongDetailsContainer.songs[songIndex];
+						return true;
+					}
+				}
+
+				for(uint i = searchNeedle; i-- > 0;) {
+					uint songIndex = SongDetailsContainer.hashBytesLUT[i];
+
+					byte* hBytes = SongDetailsContainer.hashBytes + (songIndex * SongDetailsContainer.HASH_SIZE_BYTES);
+					uint a = *(uint*)hBytes;
+
+					if(a < c1)
+						break;
+					else if(a != c1)
+						continue;
+
+					if(comp(hBytes)) {
+						song = SongDetailsContainer.songs[songIndex];
+						return true;
+					}
+				}
+
+				song = SongDetailsContainer.songs[0];
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Gets a song using its hexadecimal Map ID (Some times called Map Key)
+		/// </summary>
+		/// <param name="key">hexadecimal Map ID, captialization does not matter</param>
+		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
+		/// <returns>True if the song was found, false otherwise</returns>
+		public bool FindByMapId(string key, out Song song) => FindByMapId(Convert.ToUInt32(key, 16), out song);
+
+		/// <summary>
+		/// Gets a song using its Map ID
+		/// </summary>
+		/// <param name="key">Map ID</param>
+		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
+		/// <returns>True if the song was found, false otherwise</returns>
+		public bool FindByMapId(uint key, out Song song) {
+			var idx = Array.BinarySearch(SongDetailsContainer.keys, key);
+
+			if(idx == -1) {
+				song = SongDetailsContainer.songs[0];
+				return false;
+			}
+
+			song = SongDetailsContainer.songs[idx];
+			return true;
+		}
+	}
+
+	public class SongDetails {
+		private SongDetails() {}
+
+		public readonly SongArray songs = new SongArray();
+		public readonly DiffArray difficulties = new DiffArray();
+
+		static SongDetails auros = new SongDetails();
+
+		static bool isLoading = false;
+		public static Task<SongDetails> Init() {
+			if(SongDetailsContainer.isDataAvailable)
+				return Task.Run(() => auros);
+
+			var resultCompletionSource = new TaskCompletionSource<SongDetails>();
+
+			SongDetailsContainer.dataAvailableOrUpdated += () => {
+				isLoading = false;
+				resultCompletionSource.TrySetResult(auros);
+			};
+
+			SongDetailsContainer.dataLoadFailed += (ex) => {
+				isLoading = false;
+				resultCompletionSource.TrySetException(ex);
+			};
+
+			if(!isLoading && (isLoading = true))
+				SongDetailsContainer.Load().Start();
+
+			return resultCompletionSource.Task;
+		}
+
+
 
 		/// <summary>
 		/// Delegate used for filtering / searching songs by difficulties
 		/// </summary>
 		/// <param name="difficulty"></param>
 		/// <returns></returns>
-		public delegate bool FilterDelegate(ref SongDifficulty difficulty);
+		public delegate bool DifficultyFilterDelegate(ref SongDifficulty difficulty);
 
 		/// <summary>
 		/// Finds indexes of songs which have difficulties that pass the check condition
 		/// </summary>
 		/// <param name="check">condition to check difficulties for</param>
 		/// <returns>Collection of songs which have difficulties that passed the condition check</returns>
-		public static IReadOnlyCollection<uint> FindSongIndexes(FilterDelegate check) {
-			if(!isDataAvailable)
-				throw new Exception("SongDetails data not available!");
-
+		public IReadOnlyCollection<uint> FindSongIndexes(DifficultyFilterDelegate check) {
 			var l = new List<uint>();
 
-			for(uint i = 0, last = uint.MaxValue; i < difficulties.Length; i++) {
-				ref var x = ref difficulties[i];
+			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
+				ref var x = ref SongDetailsContainer.difficulties[i];
 
 				if(last == x.songIndex || !check(ref x))
 					continue;
-					
+
 				l.Add(x.songIndex);
 
 				last = x.songIndex;
@@ -73,14 +190,11 @@ namespace SongDetailsCache {
 		/// </summary>
 		/// <param name="check">condition to check difficulties for</param>
 		/// <returns>Collection of songs which have difficulties that passed the condition check</returns>
-		public static IReadOnlyCollection<Song> FindSongs(FilterDelegate check) {
-			if(!isDataAvailable)
-				throw new Exception("SongDetails data not available!");
-
+		public IReadOnlyCollection<Song> FindSongs(DifficultyFilterDelegate check) {
 			var l = new List<Song>();
 
-			for(uint i = 0, last = uint.MaxValue; i < difficulties.Length; i++) {
-				ref var x = ref difficulties[i];
+			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
+				ref var x = ref SongDetailsContainer.difficulties[i];
 
 				if(last == x.songIndex || !check(ref x))
 					continue;
@@ -98,14 +212,11 @@ namespace SongDetailsCache {
 		/// </summary>
 		/// <param name="check">condition to check difficulties for</param>
 		/// <returns>Count of songs that have matching difficulties</returns>
-		public static int CountSongs(FilterDelegate check) {
-			if(!isDataAvailable)
-				throw new Exception("SongDetails data not available!");
-
+		public int CountSongs(DifficultyFilterDelegate check) {
 			var count = 0;
 
-			for(uint i = 0, last = uint.MaxValue; i < difficulties.Length; i++) {
-				ref var x = ref difficulties[i];
+			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
+				ref var x = ref SongDetailsContainer.difficulties[i];
 
 				if(last == x.songIndex || !check(ref x))
 					continue;
@@ -117,132 +228,30 @@ namespace SongDetailsCache {
 
 			return count;
 		}
+	}
 
-		/// <summary>
-		/// Gets a song using its Map Hash
-		/// </summary>
-		/// <param name="hash">hexadecimal Map Hash, captialization does not matter</param>
-		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
-		/// <returns>True if the song was found, false otherwise</returns>
-		public static unsafe bool FindSongByHash(string hash, out Song song) {
-			if(!isDataAvailable)
-				throw new Exception("SongDetails data not available!");
+	static class SongDetailsContainer {
+		internal const int HASH_SIZE_BYTES = 20;
 
-			if(hash.Length != 40) {
-				song = songs[0];
-				return false;
-			}
+		internal static uint[] keys = null;
+		internal unsafe static byte* hashBytes = null;
+		internal unsafe static uint* hashBytesLUT = null;
 
-			fixed(byte* _a = HexUtil.ToBytes(hash)) {
-				uint c1 = *(uint*)_a;
-				long c2 = *(long*)(_a + 4);
-				long c3 = *(long*)(_a + 12);
+		internal static string[] songNames = null;
+		internal static string[] songAuthorNames = null;
+		internal static string[] levelAuthorNames = null;
 
-				bool comp(byte* a) {
-					return *(long*)(a + 4) == c2 &&
-							*(long*)(a + 12) == c3;
-				}
 
-				// This episode of optimization is sponsored by "Average"
-				// Will this become slower over time? Yes. Will this ever be slow? No.
-				uint searchNeedle = (uint)Math.Floor(songs.Length * (c1 / (float)(uint.MaxValue)));
+		internal static Song[] songs { get; private set; } = null;
+		internal static SongDifficulty[] difficulties { get; private set; } = null;
 
-				//int offs = 0;
-				//bool searchNeg = true;
-				//bool searchPos = true;
 
-				//for(; ;) {
-				//	uint songIndex = hashBytesLUT[searchNeedle + offs];
+		internal static Action dataAvailableOrUpdated;
+		internal static Action<Exception> dataLoadFailed;
 
-				//	byte* hBytes = hashBytes + (songIndex * HASH_SIZE_BYTES);
+		internal static bool isDataAvailable => songs != null && songs.Length > 0;
 
-				//	if(comp(hBytes)) {
-				//		song = songs[songIndex];
-				//		return true;
-				//	}
-
-				//	if(offs >= 0 && searchNeg) {
-				//		offs = ~offs;
-
-				//		if()
-				//	}
-
-				//	offs = offs >= 0 ? ~offs : (offs * -1);
-				//}
-				// Yeaaahh it would be better to step left right left right in an alternating fashion but
-				// this is already way faster than it needs to be and less complicated :) Maybe later.
-				for(uint i = searchNeedle; i < songs.Length; i++) {
-					uint songIndex = hashBytesLUT[i];
-
-					byte* hBytes = hashBytes + (songIndex * HASH_SIZE_BYTES);
-					uint a = *(uint*)hBytes;
-
-					if(a > c1)
-						break;
-					else if(a != c1)
-						continue;
-
-					if(comp(hBytes)) {
-						song = songs[songIndex];
-						return true;
-					}
-				}
-
-				for(uint i = searchNeedle; i-- > 0;) {
-					uint songIndex = hashBytesLUT[i];
-
-					byte* hBytes = hashBytes + (songIndex * HASH_SIZE_BYTES);
-					uint a = *(uint*)hBytes;
-
-					if(a < c1)
-						break;
-					else if(a != c1)
-						continue;
-
-					if(comp(hBytes)) {
-						song = songs[songIndex];
-						return true;
-					}
-				}
-
-				song = songs[0];
-				return false;
-			}
-		}
-
-		/// <summary>
-		/// Gets a song using its hexadecimal Map ID (Some times called Map Key)
-		/// </summary>
-		/// <param name="key">hexadecimal Map ID, captialization does not matter</param>
-		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
-		/// <returns>True if the song was found, false otherwise</returns>
-		public static bool FindSongByMapId(string key, out Song song) => FindSongByMapId(Convert.ToUInt32(key, 16), out song);
-
-		/// <summary>
-		/// Gets a song using its Map ID
-		/// </summary>
-		/// <param name="key">Map ID</param>
-		/// <param name="song">the song - Will be a random song if not found, make sure to check the return value of the method!</param>
-		/// <returns>True if the song was found, false otherwise</returns>
-		public static bool FindSongByMapId(uint key, out Song song) {
-			if(!isDataAvailable)
-				throw new Exception("SongDetails data not available!");
-
-			var idx = Array.BinarySearch(keys, key);
-
-			if(idx == -1) {
-				song = songs[0];
-				return false;
-			}
-
-			song = songs[idx];
-			return true;
-		}
-
-		static bool didInit = false;
-		public static void Init() { if(!didInit && (didInit = true)) Load(false); }
-
-		internal static void Load(bool reload = false) {
+		internal static async Task Load(bool reload = false) {
 			if(!reload && isDataAvailable)
 				return;
 
@@ -252,46 +261,29 @@ namespace SongDetailsCache {
 
 			// Might as well always load the cached one so thats there while we (possibly) download fresh data.
 			if(fInfo.Exists) {
-				Stopwatch sw = new Stopwatch();
-				Console.WriteLine("[SongDetailsCache] Loading cached SongDetail database...");
-				sw.Start();
-
 				try {
 					//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
 					using(var cachedStream = DataGetter.ReadCachedDatabase())
 						Process(cachedStream, false);
-
-					Console.WriteLine("[SongDetailsCache] Loaded cached database containing {0} songs in {1}ms", songs.Length, sw.ElapsedMilliseconds);
-				} catch(Exception ex) {
-					Console.WriteLine("[SongDetailsCache] Failed to load cached database:");
-					Console.WriteLine(ex);
-
-					if(!shouldLoadFresh)
-						loadNew();
+				} catch {
+					shouldLoadFresh = true;
 				}
-				sw.Stop();
 			}
 
-			void loadNew() => new Task(async () => {
-				Stopwatch sw = new Stopwatch();
-				Console.WriteLine("Loading fresh SongDetail database...");
-				sw.Start();
+			try {
+				//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
+				using(var stream = await DataGetter.UpdateAndReadDatabase())
+					Process(stream);
 
-				try {
-					//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
-					using(var stream = await DataGetter.UpdateAndReadDatabase())
-						Process(stream);
-
-					Console.WriteLine("[SongDetailsCache] Loaded fresh database containing {0} songs in {1}ms", songs.Length, sw.ElapsedMilliseconds);
-				} catch(Exception ex) {
-					Console.WriteLine("[SongDetailsCache] Failed to load fresh database:");
-					Console.WriteLine(ex);
+				if(isDataAvailable) {
+					dataAvailableOrUpdated?.Invoke();
+				} else {
+					dataLoadFailed?.Invoke(new Exception("Data load failed for unknown reason"));
 				}
-				sw.Stop();
-			}).Start();
-
-			if(shouldLoadFresh) 
-				loadNew();
+			} catch(Exception ex) {
+				if(!isDataAvailable)
+					dataLoadFailed?.Invoke(ex);
+			}
 		}
 
 		static unsafe void Process(Stream stream, bool force = true) {
