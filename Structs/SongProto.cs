@@ -41,6 +41,7 @@ namespace SongDetailsCache.Structs {
             upvotes = proto.upvotes;
             downvotes = proto.downvotes;
             uploadTimeUnix = proto.uploadTimeUnix;
+            songDurationSeconds = proto.songDurationSeconds;
         }
 
         public readonly float bpm;
@@ -69,6 +70,16 @@ namespace SongDetailsCache.Structs {
         /// Returns the uploadTimeUnix converted to a DateTime object
         /// </summary>
         public DateTime uploadTime => DateTimeOffset.FromUnixTimeSeconds(uploadTimeUnix).DateTime;
+
+        /// <summary>
+        /// The lenght of the song in seconds
+        /// </summary>
+        public readonly uint songDurationSeconds;
+
+        /// <summary>
+        /// The lenght of the song in seconds but as a Timespan
+        /// </summary>
+        public TimeSpan songDuration => TimeSpan.FromSeconds(songDurationSeconds);
 
         internal readonly uint index;
         internal readonly uint diffOffset;
