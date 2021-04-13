@@ -23,6 +23,7 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 	- Song Name
 	- Song Author
 	- Level Author
+	- Song Duration (Seconds)
 - BeatSaver Information
 	- Downloads
 	- Upvotes
@@ -35,7 +36,6 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 	- Njs
 	- Bombs / Notes / Obstacles count
 	- Characteristic
-	- Song Duration (Seconds)
 - ScoreSaber Information
 	- Score count
 	- Ranked state (Ranked or not)
