@@ -19,11 +19,11 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 ### Songs
 - General Information
 	- Bpm
+	- Song Duration (Seconds)
 	- Song Hash
 	- Song Name
 	- Song Author
 	- Level Author
-	- Song Duration (Seconds)
 - BeatSaver Information
 	- Downloads
 	- Upvotes
