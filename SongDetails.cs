@@ -12,7 +12,9 @@ using System.Collections;
 
 namespace SongDetailsCache {
 	public class DiffArray : IEnumerable<SongDifficulty> {
-		public SongDifficulty this[int i] => SongDetailsContainer.difficulties[i];
+		public ref SongDifficulty this[int i] => ref SongDetailsContainer.difficulties[i];
+
+		public int Length => SongDetailsContainer.difficulties.Length;
 
 		public IEnumerator<SongDifficulty> GetEnumerator() => SongDetailsContainer.difficulties.AsEnumerable().GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.songs.GetEnumerator();
@@ -21,7 +23,9 @@ namespace SongDetailsCache {
 	}
 
 	public class SongArray : IEnumerable<Song> {
-		public Song this[int i] => SongDetailsContainer.songs[i];
+		public ref Song this[int i] => ref SongDetailsContainer.songs[i];
+
+		public int Length => SongDetailsContainer.songs.Length;
 
 		public IEnumerator<Song> GetEnumerator() => SongDetailsContainer.songs.AsEnumerable().GetEnumerator();
 		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.songs.GetEnumerator();
@@ -161,7 +165,7 @@ namespace SongDetailsCache {
 		/// </summary>
 		/// <param name="difficulty"></param>
 		/// <returns></returns>
-		public delegate bool DifficultyFilterDelegate(ref SongDifficulty difficulty);
+		public delegate bool DifficultyFilterDelegate(in SongDifficulty difficulty);
 
 		/// <summary>
 		/// Finds indexes of songs which have difficulties that pass the check condition
@@ -174,7 +178,7 @@ namespace SongDetailsCache {
 			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
 				ref var x = ref SongDetailsContainer.difficulties[i];
 
-				if(last == x.songIndex || !check(ref x))
+				if(last == x.songIndex || !check(in x))
 					continue;
 
 				l.Add(x.songIndex);
@@ -196,7 +200,7 @@ namespace SongDetailsCache {
 			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
 				ref var x = ref SongDetailsContainer.difficulties[i];
 
-				if(last == x.songIndex || !check(ref x))
+				if(last == x.songIndex || !check(in x))
 					continue;
 
 				l.Add(x.song);
@@ -218,7 +222,7 @@ namespace SongDetailsCache {
 			for(uint i = 0, last = uint.MaxValue; i < SongDetailsContainer.difficulties.Length; i++) {
 				ref var x = ref SongDetailsContainer.difficulties[i];
 
-				if(last == x.songIndex || !check(ref x))
+				if(last == x.songIndex || !check(in x))
 					continue;
 
 				count++;
@@ -230,7 +234,7 @@ namespace SongDetailsCache {
 		}
 	}
 
-	static class SongDetailsContainer {
+	public static class SongDetailsContainer {
 		internal const int HASH_SIZE_BYTES = 20;
 
 		internal static uint[] keys = null;
@@ -242,12 +246,15 @@ namespace SongDetailsCache {
 		internal static string[] levelAuthorNames = null;
 
 
+		internal static string[] coverExtensions = null;
+		internal static DateTime scrapeEndedTimeUnix;
+
 		internal static Song[] songs { get; private set; } = null;
 		internal static SongDifficulty[] difficulties { get; private set; } = null;
 
 
-		internal static Action dataAvailableOrUpdated;
-		internal static Action<Exception> dataLoadFailed;
+		public static Action dataAvailableOrUpdated;
+		public static Action<Exception> dataLoadFailed;
 
 		internal static bool isDataAvailable => songs != null && songs.Length > 0;
 
@@ -293,7 +300,11 @@ namespace SongDetailsCache {
 			var sw = new Stopwatch(); sw.Start();
 #endif
 
-			var parsed = Serializer.Deserialize<SongProto[]>(stream);
+			var parsedContainer = Serializer.Deserialize<SongProtoContainer>(stream);
+			scrapeEndedTimeUnix = DateTimeOffset.FromUnixTimeSeconds(parsedContainer.scrapeEndedTimeUnix).DateTime;
+			coverExtensions = parsedContainer.coverExtensions;
+
+			var parsed = parsedContainer.songs;
 #if DEBUG
 			Console.WriteLine("[SongDetailsCache] Parsed {0} songs in {1}ms", parsed.Length, sw.ElapsedMilliseconds);
 

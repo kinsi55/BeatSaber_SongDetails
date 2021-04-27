@@ -16,6 +16,8 @@ namespace SongDetailsCache.Structs {
 
 
         [ProtoMember(6)] public readonly uint mapId;
+        
+        [ProtoMember(7)] public readonly byte coverExtension;
 
         [ProtoMember(8)] public readonly uint songDurationSeconds;
 
@@ -41,6 +43,7 @@ namespace SongDetailsCache.Structs {
             upvotes = proto.upvotes;
             downvotes = proto.downvotes;
             uploadTimeUnix = proto.uploadTimeUnix;
+            coverExtensionIndex = proto.coverExtension;
             songDurationSeconds = proto.songDurationSeconds;
         }
 
@@ -55,6 +58,9 @@ namespace SongDetailsCache.Structs {
         public float rating {
             get {
                 float tot = upvotes + downvotes;
+                if(tot == 0)
+                    return 0;
+
                 var tmp = upvotes / tot;
 
                 return (float)(tmp - (tmp - 0.5) * Math.Pow(2, -Math.Log10(tot + 1)));
@@ -81,9 +87,25 @@ namespace SongDetailsCache.Structs {
         /// </summary>
         public TimeSpan songDuration => TimeSpan.FromSeconds(songDurationSeconds);
 
-        internal readonly uint index;
-        internal readonly uint diffOffset;
-        internal readonly byte diffCount;
+        /// <summary>
+        /// Index of the Song in the Songs array
+        /// </summary>
+        public readonly uint index;
+
+        /// <summary>
+        /// Index of the first difficulty of this song in the difficulties array
+        /// </summary>
+        public readonly uint diffOffset;
+
+        /// <summary>
+        /// Amount of difficulties this song has
+        /// </summary>
+        public readonly byte diffCount;
+
+        /// <summary>
+        /// Amount of difficulties this song has
+        /// </summary>
+        public readonly byte coverExtensionIndex;
 
         /// <summary>
         /// Hexadecimal representation of the Map ID
@@ -95,9 +117,11 @@ namespace SongDetailsCache.Structs {
         /// </summary>
         public readonly string hash => HexUtil.SongBytesToHash(index); // This should probably not be here.
 
-        public ref readonly string songName => ref SongDetailsContainer.songNames[index];
-        public ref readonly string songAuthorName => ref SongDetailsContainer.songAuthorNames[index];
-        public ref readonly string levelAuthorName => ref SongDetailsContainer.levelAuthorNames[index];
+        public readonly string songName => SongDetailsContainer.songNames[index];
+        public readonly string songAuthorName => SongDetailsContainer.songAuthorNames[index];
+        public readonly string levelAuthorName => SongDetailsContainer.levelAuthorNames[index];
+
+        public readonly string coverURL => $"https://beatsaver.com/cdn/{key}/{hash.ToLower()}.{SongDetailsContainer.coverExtensions[coverExtensionIndex]}";
 
         /// <summary>
         /// Helper method to get a difficulty of this Song
