@@ -10,6 +10,6 @@
 		"Libs/SongDetailsCache.dll"
 	],
 	"dependsOn": {
-		"protobuf-net": "^3.0.101"
+		"protobuf-net": "^3.0.102"
 	}
 }
