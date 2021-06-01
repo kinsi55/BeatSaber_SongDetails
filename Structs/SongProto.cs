@@ -113,6 +113,11 @@ namespace SongDetailsCache.Structs {
         public readonly string key => SongDetailsContainer.keys[index].ToString("x");
 
         /// <summary>
+        /// Numeric representation of the Map ID
+        /// </summary>
+        public readonly uint mapId => SongDetailsContainer.keys[index];
+
+        /// <summary>
         /// Hexadecimal representation of the Map Hash
         /// </summary>
         public readonly string hash => HexUtil.SongBytesToHash(index); // This should probably not be here.
