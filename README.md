@@ -42,6 +42,7 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 	- Score count
 	- Ranked state (Ranked or not)
 	- Star rating
+	- Planned: Date the song was ranked at
 	- Approximate achieveable #1 PP value
 		- Uses a custom curve
 		- Usually the error is way less than 5pp of the actual #1 score but some outliers exist
