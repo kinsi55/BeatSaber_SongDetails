@@ -23,9 +23,10 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 	- Song Hash
 	- Song Name
 	- Song Author
-	- Song cover URL
 	- Level Author
 - BeatSaver Information
+	- Map ID (Numeric and Hexadecimal)
+	- Song cover URL
 	- Downloads
 	- Upvotes
 	- Downvotes
