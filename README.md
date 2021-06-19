@@ -14,6 +14,10 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 1. songs => Custom, readonly array of all songs. Has exposed methods for finding songs based off their Map ID or Hash
 2. difficulties => Custom, readonly array of all difficulties of all songs. Due to how this library is built you should ideally not access `<Song>.difficulties` for iteration purposes but instead iterate over difficulties and access `<SongDifficulty>.song`. Alternatively you can use the exposed convenience methods of `SongDetails` like `FindSongs` to find all Songs based off certain difficulty criteria.
 
+There are also two statically available events on SongDetailsContainer, dataAvailableOrUpdated and dataLoadFailed
+
+**WHENEVER dataAvailableOrUpdated IS CALLED YOU SHOULD INVALIDATE *ANY* REFERENCE YOU HAVE TO ANY SongDetails CLASS**. Almost all properties are resolved dynamically using indexes and the order of items is very likely to change after the dataset is updated.
+
 ## Available information
 
 ### Songs
