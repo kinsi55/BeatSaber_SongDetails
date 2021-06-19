@@ -133,27 +133,29 @@ namespace SongDetailsCache {
 		public readonly SongArray songs = new SongArray();
 		public readonly DiffArray difficulties = new DiffArray();
 
-		static SongDetails auros = new SongDetails();
+		internal static readonly SongDetails auros = new SongDetails();
 
 		static bool isLoading = false;
 		public static Task<SongDetails> Init() {
 			if(SongDetailsContainer.isDataAvailable)
-				return Task.Run(() => auros);
+				return Task.FromResult(auros);
 
 			var resultCompletionSource = new TaskCompletionSource<SongDetails>();
 
-			SongDetailsContainer.dataAvailableOrUpdated += () => {
+			SongDetailsContainer.dataAvailableOrUpdatedInternal += () => {
 				isLoading = false;
 				resultCompletionSource.TrySetResult(auros);
 			};
 
-			SongDetailsContainer.dataLoadFailed += (ex) => {
+			SongDetailsContainer.dataLoadFailedInternal += (ex) => {
 				isLoading = false;
 				resultCompletionSource.TrySetException(ex);
 			};
 
-			if(!isLoading && (isLoading = true))
+			if(!isLoading && (isLoading = true)) {
+				Console.WriteLine("Loading now..");
 				Task.Run(() => SongDetailsContainer.Load());
+			}
 
 			return resultCompletionSource.Task;
 		}
@@ -253,7 +255,9 @@ namespace SongDetailsCache {
 		internal static SongDifficulty[] difficulties { get; private set; } = null;
 
 
+		internal static Action dataAvailableOrUpdatedInternal;
 		public static Action dataAvailableOrUpdated;
+		internal static Action<Exception> dataLoadFailedInternal;
 		public static Action<Exception> dataLoadFailed;
 
 		internal static bool isDataAvailable => songs != null && songs.Length > 0;
@@ -277,19 +281,21 @@ namespace SongDetailsCache {
 				}
 			}
 
+			if(!shouldLoadFresh)
+				return;
+
 			try {
 				//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
 				using(var stream = await DataGetter.UpdateAndReadDatabase())
 					Process(stream);
 
-				if(isDataAvailable) {
-					dataAvailableOrUpdated?.Invoke();
-				} else {
-					dataLoadFailed?.Invoke(new Exception("Data load failed for unknown reason"));
-				}
-			} catch(Exception ex) {
 				if(!isDataAvailable)
+					throw new Exception("Data load failed for unknown reason");
+			} catch(Exception ex) {
+				if(!isDataAvailable) {
+					dataLoadFailedInternal?.Invoke(ex);
 					dataLoadFailed?.Invoke(ex);
+				}
 			}
 		}
 
@@ -402,8 +408,10 @@ namespace SongDetailsCache {
 			Console.WriteLine("[SongDetailsCache] Transforming data took {0}ms, got {1} diffs", sw.ElapsedMilliseconds, difficulties.Length);
 #endif
 
-			if(isDataAvailable)
+			if(isDataAvailable) try {
+				dataAvailableOrUpdatedInternal?.Invoke();
 				dataAvailableOrUpdated?.Invoke();
+			} catch { }
 		}
 	}
 }
