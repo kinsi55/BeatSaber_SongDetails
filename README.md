@@ -16,7 +16,7 @@ To use this library you aquire an Instance of the SongDetails class by calling `
 
 There are also two statically available events on SongDetailsContainer, dataAvailableOrUpdated and dataLoadFailed
 
-**WHENEVER `dataAvailableOrUpdated` IS CALLED YOU SHOULD INVALIDATE *ANY* REFERENCE YOU HAVE TO ANY SongDetails CLASS**. Almost all properties are resolved dynamically using indexes and the order of items is very likely to change after the dataset is updated.
+**WHENEVER `dataAvailableOrUpdated` IS CALLED YOU SHOULD INVALIDATE *ANY* REFERENCE YOU HAVE TO ANY SongDetails CLASS** (Except for the SongDetails instance itself). Almost all properties are resolved dynamically using indexes and the order of items is very likely to change after the dataset is updated.
 
 ## Available information
 
