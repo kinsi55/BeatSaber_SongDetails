@@ -17,7 +17,7 @@ namespace SongDetailsCache {
 		public int Length => SongDetailsContainer.difficulties.Length;
 
 		public IEnumerator<SongDifficulty> GetEnumerator() => SongDetailsContainer.difficulties.AsEnumerable().GetEnumerator();
-		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.songs.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => SongDetailsContainer.difficulties.GetEnumerator();
 
 		internal DiffArray() { }
 	}
