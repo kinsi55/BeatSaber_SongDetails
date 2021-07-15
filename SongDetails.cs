@@ -152,10 +152,8 @@ namespace SongDetailsCache {
 				resultCompletionSource.TrySetException(ex);
 			};
 
-			if(!isLoading && (isLoading = true)) {
-				Console.WriteLine("Loading now..");
+			if(!isLoading && (isLoading = true))
 				Task.Run(() => SongDetailsContainer.Load());
-			}
 
 			return resultCompletionSource.Task;
 		}
