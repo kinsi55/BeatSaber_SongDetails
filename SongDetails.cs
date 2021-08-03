@@ -283,9 +283,10 @@ namespace SongDetailsCache {
 				return;
 
 			try {
-				//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
-				using(var stream = await DataGetter.UpdateAndReadDatabase())
+				using(var stream = await DataGetter.UpdateAndReadDatabase()) {
 					Process(stream);
+					await DataGetter.WriteCachedDatabase(stream);
+				}
 
 				if(!isDataAvailable)
 					throw new Exception("Data load failed for unknown reason");

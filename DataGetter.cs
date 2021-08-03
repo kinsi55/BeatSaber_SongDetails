@@ -13,7 +13,7 @@ namespace SongDetailsCache {
 		private static HttpClient client = null;
 		public static string cachePath = Path.Combine(Environment.CurrentDirectory, "UserData", "SongDetailsCache.proto");
 
-		public static async Task<Stream> UpdateAndReadDatabase() {
+		public static async Task<MemoryStream> UpdateAndReadDatabase() {
 			if(client == null) {
 				client = new HttpClient(new HttpClientHandler() {
 					AutomaticDecompression = DecompressionMethods.None,
@@ -28,16 +28,23 @@ namespace SongDetailsCache {
 					throw new Exception($"Got unexpected HTTP response: {resp.StatusCode} {resp.ReasonPhrase}");
 
 				using(var stream = await resp.Content.ReadAsStreamAsync()) {
-					//Using create here so that a possibly existing file (And handles to it) are kept intact
-					Stream fs = new FileStream(cachePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete, 8192, true);
+					var fs = new MemoryStream();
 					using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
 						await decompressed.CopyToAsync(fs);
 					//Returning the file handle so we can end the HTTP request
-					fs.SetLength(fs.Position);
-					fs.Position = 0;
 					return fs;
 				}
 			}
+		}
+
+		public static async Task WriteCachedDatabase(MemoryStream stream) {
+			//Using create here so that a possibly existing file (And handles to it) are kept intact
+			Stream fs = new FileStream(cachePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete, 8192, true);
+
+			fs.Position = 0;
+
+			await stream.CopyToAsync(fs);
+			fs.SetLength(stream.Length);
 		}
 
 		public static Stream ReadCachedDatabase() {
