@@ -246,7 +246,6 @@ namespace SongDetailsCache {
 		internal static string[] levelAuthorNames = null;
 
 
-		internal static string[] coverExtensions = null;
 		internal static DateTime scrapeEndedTimeUnix;
 
 		internal static Song[] songs { get; private set; } = null;
@@ -260,23 +259,27 @@ namespace SongDetailsCache {
 
 		internal static bool isDataAvailable => songs != null && songs.Length > 0;
 
-		internal static async Task Load(bool reload = false) {
+		internal static async Task Load(bool reload = false, int acceptibleAgeHours = 2) {
 			if(!reload && isDataAvailable)
 				return;
 
 			FileInfo fInfo = new FileInfo(DataGetter.cachePath);
 
-			bool shouldLoadFresh = !fInfo.Exists || fInfo.LastWriteTime < DateTime.Now - TimeSpan.FromHours(12);
+			bool shouldLoadFresh = false;
 
 			// Might as well always load the cached one so thats there while we (possibly) download fresh data.
 			if(fInfo.Exists) {
 				try {
-					//At the odd chance that somehow loading fresh data was faster than loading the cached one, make sure to not replace it
 					using(var cachedStream = DataGetter.ReadCachedDatabase())
 						Process(cachedStream, false);
+
+					if(DateTime.UtcNow - scrapeEndedTimeUnix > TimeSpan.FromHours(Math.Max(1, acceptibleAgeHours)))
+						shouldLoadFresh = true;
 				} catch {
 					shouldLoadFresh = true;
 				}
+			} else {
+				shouldLoadFresh = true;
 			}
 
 			if(!shouldLoadFresh)
