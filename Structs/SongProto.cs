@@ -13,11 +13,9 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(4)] public readonly uint downvotes; 
 
         [ProtoMember(5)] public readonly uint uploadTimeUnix;
-
+        [ProtoMember(14)] public readonly uint rankedChangeUnix;
 
         [ProtoMember(6)] public readonly uint mapId;
-        
-        [ProtoMember(7)] public readonly byte coverExtension;
 
         [ProtoMember(8)] public readonly uint songDurationSeconds;
 
@@ -43,7 +41,7 @@ namespace SongDetailsCache.Structs {
             upvotes = proto.upvotes;
             downvotes = proto.downvotes;
             uploadTimeUnix = proto.uploadTimeUnix;
-            coverExtensionIndex = proto.coverExtension;
+            rankedChangeUnix = proto.rankedChangeUnix;
             songDurationSeconds = proto.songDurationSeconds;
         }
 
@@ -71,6 +69,11 @@ namespace SongDetailsCache.Structs {
         /// Unix timestamp of when the map was uploaded
         /// </summary>
         public readonly uint uploadTimeUnix;
+
+        /// <summary>
+        /// Unix timestamp of when any of the difficulties of this map changed its ranked status
+        /// </summary>
+        public readonly uint rankedChangeUnix;
 
         /// <summary>
         /// Returns the uploadTimeUnix converted to a DateTime object
@@ -103,11 +106,6 @@ namespace SongDetailsCache.Structs {
         public readonly byte diffCount;
 
         /// <summary>
-        /// Amount of difficulties this song has
-        /// </summary>
-        public readonly byte coverExtensionIndex;
-
-        /// <summary>
         /// Hexadecimal representation of the Map ID
         /// </summary>
         public readonly string key => SongDetailsContainer.keys[index].ToString("x");
@@ -126,7 +124,7 @@ namespace SongDetailsCache.Structs {
         public readonly string songAuthorName => SongDetailsContainer.songAuthorNames[index];
         public readonly string levelAuthorName => SongDetailsContainer.levelAuthorNames[index];
 
-        public readonly string coverURL => $"https://beatsaver.com/cdn/{key}/{hash.ToLower()}.{SongDetailsContainer.coverExtensions[coverExtensionIndex]}";
+        public readonly string coverURL => $"https://cdn.beatsaver.com/{hash.ToLower()}.jpg";
 
         /// <summary>
         /// Helper method to get a difficulty of this Song

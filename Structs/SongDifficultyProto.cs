@@ -9,6 +9,11 @@ namespace SongDetailsCache.Structs {
     public enum MapDifficulty : byte { Easy = 0, Normal, Hard, Expert, ExpertPlus }
     public enum MapCharacteristic : byte { Custom = 0, Standard, OneSaber, NoArrows, NinetyDegree, ThreeSixtyDegree, Lightshow, Lawless }
 
+    [Flags]
+    public enum MapMods : uint { NoodleExtensions = 1, MappingExtensions = 1 << 1, Chroma = 1 << 2, Cinema = 1 << 3 }
+
+    public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2 }
+
     [ProtoContract(SkipConstructor = true)]
     class SongDifficultyProto {
 #pragma warning disable 649
@@ -17,13 +22,15 @@ namespace SongDetailsCache.Structs {
 
         [ProtoMember(3)] public readonly uint scoreCount;
         [ProtoMember(4)] public readonly uint starsT100;
-        [ProtoMember(5)] public readonly bool ranked;
+        [ProtoMember(5)] public readonly RankedStatus rankedStatus;
 
         [ProtoMember(6)] public readonly uint njsT100;
 
         [ProtoMember(7)] public readonly uint bombs;
         [ProtoMember(8)] public readonly uint notes;
         [ProtoMember(9)] public readonly uint obstacles;
+
+        [ProtoMember(10)] public readonly MapMods mods;
 #pragma warning restore
     }
 
@@ -35,7 +42,7 @@ namespace SongDetailsCache.Structs {
             difficulty = proto.difficulty;
             scoreCount = proto.scoreCount;
             stars = proto.starsT100 / 100f;
-            ranked = proto.ranked;
+            rankedStatus = proto.rankedStatus;
             njs = proto.njsT100 / 100f;
             bombs = proto.bombs;
             notes = proto.notes;
@@ -76,7 +83,12 @@ namespace SongDetailsCache.Structs {
         /// <summary>
         /// Returns if the Difficulty is ranked on ScoreSaber
         /// </summary>
-        public readonly bool ranked;
+        public bool ranked => rankedStatus == RankedStatus.Ranked;
+
+        /// <summary>
+        /// Ranked status of the map on ScoreSaber
+        /// </summary>
+        public readonly RankedStatus rankedStatus;
 
         /// <summary>
         /// The Song this Difficulty belongs to
@@ -89,7 +101,7 @@ namespace SongDetailsCache.Structs {
         /// </summary>
         public float approximatePpValue {
             get {
-                if(stars <= 0.1 || !ranked)
+                if(stars <= 0.05 || !ranked)
                     return 0;
 
                 return stars * (45f + ((10f - stars) / 7f));

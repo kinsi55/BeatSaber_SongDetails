@@ -9,7 +9,6 @@ namespace SongDetailsCache.Structs {
 #pragma warning disable 649
         [ProtoMember(1)] public readonly byte formatVersion;
         [ProtoMember(2)] public readonly uint scrapeEndedTimeUnix;
-        [ProtoMember(3)] public readonly string[] coverExtensions;
         [ProtoMember(4)] public readonly SongProto[] songs;
 #pragma warning restore 649
     }
