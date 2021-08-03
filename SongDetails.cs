@@ -307,7 +307,9 @@ namespace SongDetailsCache {
 
 			var parsedContainer = Serializer.Deserialize<SongProtoContainer>(stream);
 			scrapeEndedTimeUnix = DateTimeOffset.FromUnixTimeSeconds(parsedContainer.scrapeEndedTimeUnix).DateTime;
-			coverExtensions = parsedContainer.coverExtensions;
+
+			if(parsedContainer.formatVersion > 2)
+				throw new Exception("Invalid SongDetails Data dump version. Please Update SongDetails.");
 
 			var parsed = parsedContainer.songs;
 #if DEBUG
