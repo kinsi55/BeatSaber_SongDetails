@@ -20,7 +20,6 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(1)] public readonly MapCharacteristic characteristic;
         [ProtoMember(2)] public readonly MapDifficulty difficulty;
 
-        [ProtoMember(3)] public readonly uint scoreCount;
         [ProtoMember(4)] public readonly uint starsT100;
         [ProtoMember(5)] public readonly RankedStatus rankedStatus;
 
@@ -40,7 +39,6 @@ namespace SongDetailsCache.Structs {
 
             characteristic = proto.characteristic;
             difficulty = proto.difficulty;
-            scoreCount = proto.scoreCount;
             stars = proto.starsT100 / 100f;
             rankedStatus = proto.rankedStatus;
             njs = proto.njsT100 / 100f;
@@ -51,10 +49,6 @@ namespace SongDetailsCache.Structs {
 
         internal readonly uint songIndex;
 
-        /// <summary>
-        /// Amount of Scoresaber scores for this difficulty
-        /// </summary>
-        public readonly uint scoreCount;
         /// <summary>
         /// Scoresaber difficulty rating of this difficulty
         /// </summary>
