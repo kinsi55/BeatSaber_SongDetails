@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace SongDetailsCache.Structs {
     public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2 }
 
-    [ProtoContract(SkipConstructor = true)]
+    [ProtoContract]
     class SongProto {
 #pragma warning disable 649
         [ProtoMember(1)] public readonly float bpm;
@@ -27,10 +27,15 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(11)] public readonly string songAuthorName;
         [ProtoMember(12)] public readonly string levelAuthorName;
 
-        [ProtoMember(14)] public readonly RankedStatus rankedStatus;
+        [ProtoMember(15)] public readonly RankedStatus rankedState;
 
         [ProtoMember(13, OverwriteList = true)] internal readonly SongDifficultyProto[] difficulties;
 #pragma warning restore 649
+
+        SongProto() {
+            songDurationSeconds = 1;
+            rankedState = RankedStatus.Unranked;
+        }
     }
 
     public readonly struct Song {
@@ -46,7 +51,7 @@ namespace SongDetailsCache.Structs {
             uploadTimeUnix = proto.uploadTimeUnix;
             rankedChangeUnix = proto.rankedChangeUnix;
             songDurationSeconds = proto.songDurationSeconds;
-            rankedStatus = proto.rankedStatus;
+            rankedStatus = proto.rankedState;
         }
 
         public readonly float bpm;

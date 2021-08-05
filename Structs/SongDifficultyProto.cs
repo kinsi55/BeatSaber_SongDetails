@@ -12,10 +12,10 @@ namespace SongDetailsCache.Structs {
     [Flags]
     public enum MapMods : uint { NoodleExtensions = 1, MappingExtensions = 1 << 1, Chroma = 1 << 2, Cinema = 1 << 3 }
 
-    [ProtoContract(SkipConstructor = true)]
+    [ProtoContract]
     class SongDifficultyProto {
 #pragma warning disable 649
-        [ProtoMember(1)] public readonly MapCharacteristic characteristic;
+        [ProtoMember(1)] public readonly MapCharacteristic characteristic = MapCharacteristic.Standard;
         [ProtoMember(2)] public readonly MapDifficulty difficulty;
 
         [ProtoMember(4)] public readonly uint starsT100;
@@ -28,6 +28,10 @@ namespace SongDetailsCache.Structs {
 
         [ProtoMember(10)] public readonly MapMods mods;
 #pragma warning restore
+
+        SongDifficultyProto() {
+            characteristic = MapCharacteristic.Standard;
+        }
     }
 
     public readonly struct SongDifficulty {
