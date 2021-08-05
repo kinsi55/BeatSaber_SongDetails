@@ -12,8 +12,6 @@ namespace SongDetailsCache.Structs {
     [Flags]
     public enum MapMods : uint { NoodleExtensions = 1, MappingExtensions = 1 << 1, Chroma = 1 << 2, Cinema = 1 << 3 }
 
-    public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2 }
-
     [ProtoContract(SkipConstructor = true)]
     class SongDifficultyProto {
 #pragma warning disable 649
@@ -21,7 +19,6 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(2)] public readonly MapDifficulty difficulty;
 
         [ProtoMember(4)] public readonly uint starsT100;
-        [ProtoMember(5)] public readonly RankedStatus rankedStatus;
 
         [ProtoMember(6)] public readonly uint njsT100;
 
@@ -40,7 +37,6 @@ namespace SongDetailsCache.Structs {
             characteristic = proto.characteristic;
             difficulty = proto.difficulty;
             stars = proto.starsT100 / 100f;
-            rankedStatus = proto.rankedStatus;
             njs = proto.njsT100 / 100f;
             bombs = proto.bombs;
             notes = proto.notes;
@@ -77,12 +73,7 @@ namespace SongDetailsCache.Structs {
         /// <summary>
         /// Returns if the Difficulty is ranked on ScoreSaber
         /// </summary>
-        public bool ranked => rankedStatus == RankedStatus.Ranked;
-
-        /// <summary>
-        /// Ranked status of the map on ScoreSaber
-        /// </summary>
-        public readonly RankedStatus rankedStatus;
+        public bool ranked => stars > 0 && song.rankedStatus == RankedStatus.Ranked;
 
         /// <summary>
         /// The Song this Difficulty belongs to

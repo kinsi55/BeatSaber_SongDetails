@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 namespace SongDetailsCache.Structs {
+    public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2 }
 
     [ProtoContract(SkipConstructor = true)]
     class SongProto {
@@ -26,6 +27,8 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(11)] public readonly string songAuthorName;
         [ProtoMember(12)] public readonly string levelAuthorName;
 
+        [ProtoMember(14)] public readonly RankedStatus rankedStatus;
+
         [ProtoMember(13, OverwriteList = true)] internal readonly SongDifficultyProto[] difficulties;
 #pragma warning restore 649
     }
@@ -43,6 +46,7 @@ namespace SongDetailsCache.Structs {
             uploadTimeUnix = proto.uploadTimeUnix;
             rankedChangeUnix = proto.rankedChangeUnix;
             songDurationSeconds = proto.songDurationSeconds;
+            rankedStatus = proto.rankedStatus;
         }
 
         public readonly float bpm;
@@ -114,6 +118,11 @@ namespace SongDetailsCache.Structs {
         /// Numeric representation of the Map ID
         /// </summary>
         public readonly uint mapId => SongDetailsContainer.keys[index];
+
+        /// <summary>
+        /// Ranked status of the map on ScoreSaber
+        /// </summary>
+        public readonly RankedStatus rankedStatus;
 
         /// <summary>
         /// Hexadecimal representation of the Map Hash
