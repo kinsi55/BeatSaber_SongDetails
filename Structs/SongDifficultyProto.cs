@@ -30,6 +30,7 @@ namespace SongDetailsCache.Structs {
 #pragma warning restore
 
         SongDifficultyProto() {
+            difficulty = MapDifficulty.ExpertPlus;
             characteristic = MapCharacteristic.Standard;
         }
     }
@@ -45,6 +46,7 @@ namespace SongDetailsCache.Structs {
             bombs = proto.bombs;
             notes = proto.notes;
             obstacles = proto.obstacles;
+            mods = proto.mods;
         }
 
         internal readonly uint songIndex;
@@ -73,6 +75,7 @@ namespace SongDetailsCache.Structs {
 
         public readonly MapCharacteristic characteristic;
         public readonly MapDifficulty difficulty;
+        public readonly MapMods mods;
 
         /// <summary>
         /// Returns if the Difficulty is ranked on ScoreSaber
