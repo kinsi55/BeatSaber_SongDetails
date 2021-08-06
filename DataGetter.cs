@@ -7,13 +7,19 @@ using System.IO.Compression;
 
 namespace SongDetailsCache {
 	static class DataGetter {
-		const string dataUrl = "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails.gz";
-		//const string dataUrl = "http://127.0.0.1/songDetails.proto";
+		const string dataUrl = "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz";
+		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
 
 		private static HttpClient client = null;
 		public static string cachePath = Path.Combine(Environment.CurrentDirectory, "UserData", "SongDetailsCache.proto");
+		public static string cachePathEtag = Path.Combine(Environment.CurrentDirectory, "UserData", "SongDetailsCache.etag.proto");
 
-		public static async Task<MemoryStream> UpdateAndReadDatabase() {
+		public class DownloadedDatabase {
+			public string etag;
+			public MemoryStream stream;
+		}
+
+		public static async Task<DownloadedDatabase> UpdateAndReadDatabase(string oldEtag = null) {
 			if(client == null) {
 				client = new HttpClient(new HttpClientHandler() {
 					AutomaticDecompression = DecompressionMethods.None,
@@ -21,9 +27,16 @@ namespace SongDetailsCache {
 				});
 
 				client.DefaultRequestHeaders.ConnectionClose = true;
+
+				if(oldEtag != null) try {
+					client.DefaultRequestHeaders.Add("If-None-Match", oldEtag);
+				} catch { }
 			}
 
 			using(var resp = await client.GetAsync(dataUrl, HttpCompletionOption.ResponseHeadersRead)) {
+				if(resp.StatusCode == HttpStatusCode.NotModified)
+					return null;
+
 				if(resp.StatusCode != HttpStatusCode.OK)
 					throw new Exception($"Got unexpected HTTP response: {resp.StatusCode} {resp.ReasonPhrase}");
 
@@ -32,19 +45,25 @@ namespace SongDetailsCache {
 					using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
 						await decompressed.CopyToAsync(fs);
 					//Returning the file handle so we can end the HTTP request
-					return fs;
+					fs.Position = 0;
+					return new DownloadedDatabase() {
+						etag = resp.Headers.ETag.Tag,
+						stream = fs
+					};
 				}
 			}
 		}
 
-		public static async Task WriteCachedDatabase(MemoryStream stream) {
+		public static async Task WriteCachedDatabase(DownloadedDatabase db) {
 			//Using create here so that a possibly existing file (And handles to it) are kept intact
-			Stream fs = new FileStream(cachePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete, 8192, true);
+			using(var fs = new FileStream(cachePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete, 8192, true)) {
+				fs.Position = 0;
 
-			fs.Position = 0;
+				await db.stream.CopyToAsync(fs);
+				fs.SetLength(db.stream.Length);
+			}
 
-			await stream.CopyToAsync(fs);
-			fs.SetLength(stream.Length);
+			File.WriteAllText(cachePathEtag, db.etag);
 		}
 
 		public static Stream ReadCachedDatabase() {

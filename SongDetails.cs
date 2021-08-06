@@ -259,19 +259,23 @@ namespace SongDetailsCache {
 
 		internal static bool isDataAvailable => songs != null && songs.Length > 0;
 
-		internal static async Task Load(bool reload = false, int acceptibleAgeHours = 2) {
+		internal static async Task Load(bool reload = false, int acceptibleAgeHours = 1) {
 			if(!reload && isDataAvailable)
 				return;
 
 			FileInfo fInfo = new FileInfo(DataGetter.cachePath);
 
 			bool shouldLoadFresh = false;
+			string oldEtag = null;
 
 			// Might as well always load the cached one so thats there while we (possibly) download fresh data.
 			if(fInfo.Exists) {
 				try {
 					using(var cachedStream = DataGetter.ReadCachedDatabase())
 						Process(cachedStream, false);
+
+					if(File.Exists(DataGetter.cachePathEtag))
+						oldEtag = File.ReadAllText(DataGetter.cachePathEtag);
 
 					if(DateTime.UtcNow - scrapeEndedTimeUnix > TimeSpan.FromHours(Math.Max(1, acceptibleAgeHours)))
 						shouldLoadFresh = true;
@@ -286,9 +290,12 @@ namespace SongDetailsCache {
 				return;
 
 			try {
-				using(var stream = await DataGetter.UpdateAndReadDatabase()) {
-					Process(stream);
-					await DataGetter.WriteCachedDatabase(stream);
+				var db = await DataGetter.UpdateAndReadDatabase(oldEtag);
+				if(db != null) {
+					using(var stream = db.stream) {
+						Process(stream);
+						await DataGetter.WriteCachedDatabase(db);
+					}
 				}
 
 				if(!isDataAvailable)
@@ -325,7 +332,7 @@ namespace SongDetailsCache {
 				throw new Exception("Parsing data yielded no songs");
 
 
-			// Stuff gotta be sorted for Binary search (Key lookup) to work. The Data is presorted but this is a failafe
+			// Stuff gotta be sorted for Binary search (Key lookup) to work.
 			parsed = parsed.OrderBy(x => x.mapId).ToArray();
 #if DEBUG
 			Console.WriteLine("[SongDetailsCache] Sorted in {1}ms", parsed.Length, sw.ElapsedMilliseconds);
