@@ -287,12 +287,10 @@ namespace SongDetailsCache {
 				shouldLoadFresh = true;
 			}
 
-			if(!shouldLoadFresh || DateTime.Now - updateThrottle > TimeSpan.FromMinutes(30)) {
+			if(!shouldLoadFresh || DateTime.Now - updateThrottle < TimeSpan.FromMinutes(30)) {
 				SongDetails.isLoading = false;
 				return;
 			}
-
-			Console.WriteLine("Trying to load new db...");
 
 			try {
 				var db = await DataGetter.UpdateAndReadDatabase(oldEtag);

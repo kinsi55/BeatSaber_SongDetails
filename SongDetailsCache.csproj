@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(TargetDir)/SongDetailsCache BS Lib/Libs&quot;&#xD;&#xA;copy /Y &quot;$(TargetDir)SongDetailsCache.manifest&quot; &quot;$(TargetDir)/SongDetailsCache BS Lib/Plugins&quot;&#xD;&#xA;cd &quot;$(TargetDir)/SongDetailsCache BS Lib&quot;&#xD;&#xA;&quot;C:\Program Files\7-Zip\7z.exe&quot; a -y -r out.zip &quot;Libs&quot; &quot;Plugins&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(TargetDir)/SongDetailsCache BS Lib/Libs&quot;&#xD;&#xA;copy /Y &quot;$(TargetDir)SongDetailsCache.manifest&quot; &quot;$(TargetDir)/SongDetailsCache BS Lib/Plugins&quot;&#xD;&#xA;cd &quot;$(TargetDir)/SongDetailsCache BS Lib&quot;&#xD;&#xA;&quot;C:\Program Files\7-Zip\7z.exe&quot; a -y -r &quot;SongDetailsCache BS Lib.zip&quot; &quot;Libs&quot; &quot;Plugins&quot;" />
   </Target>
 
 </Project>
