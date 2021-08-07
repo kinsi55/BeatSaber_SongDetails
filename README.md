@@ -38,17 +38,18 @@ There are also two statically available events on SongDetailsContainer, dataAvai
 	- Downvotes
 	- Rating
 	- Upload timestamp
+- ScoreSaber Information
+	- If any of the diffs are ranked or qualified
+	- Unix Timestamp of when the Ranked state changed
 
 ### Song Difficulties
 - General Information
 	- Njs
 	- Bombs / Notes / Obstacles count
 	- Characteristic
+	- Mods (Noodle Extensions / Mapping Extensions / Chroma / Cinema)
 - ScoreSaber Information
-	- Score count
-	- Ranked state (Ranked or not)
-	- Star rating
+	- Star rating (0 if not ranked)
 	- Approximate achieveable #1 PP value
 		- Uses a custom curve
 		- Usually the error is way less than 5pp of the actual #1 score but some outliers exist
-	- Planned: If the song is unranked / qualified / ranked and when it switched to qualified / ranked
