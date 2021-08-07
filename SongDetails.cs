@@ -135,27 +135,28 @@ namespace SongDetailsCache {
 
 		internal static readonly SongDetails auros = new SongDetails();
 
-		static bool isLoading = false;
-		public static Task<SongDetails> Init() {
-			if(SongDetailsContainer.isDataAvailable)
-				return Task.FromResult(auros);
+		static internal bool isLoading = false;
+		public static Task<SongDetails> Init() => Init(6);
+		public static Task<SongDetails> Init(int refreshIfOlderThanHours) {
+			var ret = Task.FromResult(auros);
 
-			var resultCompletionSource = new TaskCompletionSource<SongDetails>();
+			if(!SongDetailsContainer.isDataAvailable) {
+				var resultCompletionSource = new TaskCompletionSource<SongDetails>();
+				ret = resultCompletionSource.Task;
 
-			SongDetailsContainer.dataAvailableOrUpdatedInternal += () => {
-				isLoading = false;
-				resultCompletionSource.TrySetResult(auros);
-			};
+				SongDetailsContainer.dataAvailableOrUpdatedInternal += () => {
+					resultCompletionSource.TrySetResult(auros);
+				};
 
-			SongDetailsContainer.dataLoadFailedInternal += (ex) => {
-				isLoading = false;
-				resultCompletionSource.TrySetException(ex);
-			};
+				SongDetailsContainer.dataLoadFailedInternal += (ex) => {
+					resultCompletionSource.TrySetException(ex);
+				};
+			}
 
 			if(!isLoading && (isLoading = true))
-				Task.Run(() => SongDetailsContainer.Load());
+				Task.Run(() => SongDetailsContainer.Load(false, refreshIfOlderThanHours));
 
-			return resultCompletionSource.Task;
+			return ret;
 		}
 
 
@@ -258,11 +259,9 @@ namespace SongDetailsCache {
 		public static Action<Exception> dataLoadFailed;
 
 		internal static bool isDataAvailable => songs != null && songs.Length > 0;
+		internal static DateTime updateThrottle = DateTime.MinValue;
 
 		internal static async Task Load(bool reload = false, int acceptibleAgeHours = 1) {
-			if(!reload && isDataAvailable)
-				return;
-
 			FileInfo fInfo = new FileInfo(DataGetter.cachePath);
 
 			bool shouldLoadFresh = false;
@@ -271,8 +270,10 @@ namespace SongDetailsCache {
 			// Might as well always load the cached one so thats there while we (possibly) download fresh data.
 			if(fInfo.Exists) {
 				try {
-					using(var cachedStream = DataGetter.ReadCachedDatabase())
-						Process(cachedStream, false);
+					if(!isDataAvailable || reload) {
+						using(var cachedStream = DataGetter.ReadCachedDatabase())
+							Process(cachedStream, false);
+					}
 
 					if(File.Exists(DataGetter.cachePathEtag))
 						oldEtag = File.ReadAllText(DataGetter.cachePathEtag);
@@ -286,8 +287,12 @@ namespace SongDetailsCache {
 				shouldLoadFresh = true;
 			}
 
-			if(!shouldLoadFresh)
+			if(!shouldLoadFresh || DateTime.Now - updateThrottle > TimeSpan.FromMinutes(30)) {
+				SongDetails.isLoading = false;
 				return;
+			}
+
+			Console.WriteLine("Trying to load new db...");
 
 			try {
 				var db = await DataGetter.UpdateAndReadDatabase(oldEtag);
@@ -306,6 +311,7 @@ namespace SongDetailsCache {
 					dataLoadFailed?.Invoke(ex);
 				}
 			}
+			SongDetails.isLoading = false;
 		}
 
 		static unsafe void Process(Stream stream, bool force = true) {
@@ -316,10 +322,10 @@ namespace SongDetailsCache {
 #endif
 
 			var parsedContainer = Serializer.Deserialize<SongProtoContainer>(stream);
-			scrapeEndedTimeUnix = DateTimeOffset.FromUnixTimeSeconds(parsedContainer.scrapeEndedTimeUnix).DateTime;
-
 			if(parsedContainer.formatVersion > 2)
 				throw new Exception("Invalid SongDetails Data dump version. Please Update SongDetails.");
+
+			scrapeEndedTimeUnix = DateTimeOffset.FromUnixTimeSeconds(parsedContainer.scrapeEndedTimeUnix).DateTime;
 
 			var parsed = parsedContainer.songs;
 #if DEBUG
