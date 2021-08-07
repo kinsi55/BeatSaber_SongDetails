@@ -136,7 +136,7 @@ namespace SongDetailsCache {
 		internal static readonly SongDetails auros = new SongDetails();
 
 		static internal bool isLoading = false;
-		public static Task<SongDetails> Init() => Init(6);
+		public static Task<SongDetails> Init() => Init(3);
 		public static Task<SongDetails> Init(int refreshIfOlderThanHours) {
 			var ret = Task.FromResult(auros);
 
