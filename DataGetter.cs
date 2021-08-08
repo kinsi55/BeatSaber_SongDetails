@@ -27,13 +27,11 @@ namespace SongDetailsCache {
 				});
 
 				client.DefaultRequestHeaders.ConnectionClose = true;
-
-				
 			}
 
 			using(var req = new HttpRequestMessage(HttpMethod.Get, dataUrl)) {
 				if(oldEtag != null) try {
-					client.DefaultRequestHeaders.Add("If-None-Match", oldEtag);
+					req.Headers.Add("If-None-Match", oldEtag);
 				} catch { }
 
 
