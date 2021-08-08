@@ -28,28 +28,33 @@ namespace SongDetailsCache {
 
 				client.DefaultRequestHeaders.ConnectionClose = true;
 
+				
+			}
+
+			using(var req = new HttpRequestMessage(HttpMethod.Get, dataUrl)) {
 				if(oldEtag != null) try {
 					client.DefaultRequestHeaders.Add("If-None-Match", oldEtag);
 				} catch { }
-			}
 
-			using(var resp = await client.GetAsync(dataUrl, HttpCompletionOption.ResponseHeadersRead)) {
-				if(resp.StatusCode == HttpStatusCode.NotModified)
-					return null;
 
-				if(resp.StatusCode != HttpStatusCode.OK)
-					throw new Exception($"Got unexpected HTTP response: {resp.StatusCode} {resp.ReasonPhrase}");
+				using(var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead)) {
+					if(resp.StatusCode == HttpStatusCode.NotModified)
+						return null;
 
-				using(var stream = await resp.Content.ReadAsStreamAsync()) {
-					var fs = new MemoryStream();
-					using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
-						await decompressed.CopyToAsync(fs);
-					//Returning the file handle so we can end the HTTP request
-					fs.Position = 0;
-					return new DownloadedDatabase() {
-						etag = resp.Headers.ETag.Tag,
-						stream = fs
-					};
+					if(resp.StatusCode != HttpStatusCode.OK)
+						throw new Exception($"Got unexpected HTTP response: {resp.StatusCode} {resp.ReasonPhrase}");
+
+					using(var stream = await resp.Content.ReadAsStreamAsync()) {
+						var fs = new MemoryStream();
+						using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
+							await decompressed.CopyToAsync(fs);
+						//Returning the file handle so we can end the HTTP request
+						fs.Position = 0;
+						return new DownloadedDatabase() {
+							etag = resp.Headers.ETag.Tag,
+							stream = fs
+						};
+					}
 				}
 			}
 		}
