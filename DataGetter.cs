@@ -30,10 +30,8 @@ namespace SongDetailsCache {
 			}
 
 			using(var req = new HttpRequestMessage(HttpMethod.Get, dataUrl)) {
-				if(oldEtag != null) try {
+				if(oldEtag != null)
 					req.Headers.Add("If-None-Match", oldEtag);
-				} catch { }
-
 
 				using(var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead)) {
 					if(resp.StatusCode == HttpStatusCode.NotModified)
@@ -62,6 +60,7 @@ namespace SongDetailsCache {
 			using(var fs = new FileStream(cachePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete, 8192, true)) {
 				fs.Position = 0;
 
+				db.stream.Position = 0;
 				await db.stream.CopyToAsync(fs);
 				fs.SetLength(db.stream.Length);
 			}

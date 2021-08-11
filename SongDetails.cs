@@ -275,12 +275,23 @@ namespace SongDetailsCache {
 							Process(cachedStream, false);
 					}
 
-					if(File.Exists(DataGetter.cachePathEtag))
+#if DEBUG
+					Console.WriteLine("ETAG?? {0}", DataGetter.cachePathEtag);
+#endif
+					if(File.Exists(DataGetter.cachePathEtag)) {
 						oldEtag = File.ReadAllText(DataGetter.cachePathEtag);
+
+#if DEBUG
+						Console.WriteLine("ETAG {0}", oldEtag);
+#endif
+					}
 
 					if(DateTime.UtcNow - scrapeEndedTimeUnix > TimeSpan.FromHours(Math.Max(1, acceptibleAgeHours)))
 						shouldLoadFresh = true;
-				} catch {
+				} catch(Exception ex) {
+#if DEBUG
+					Console.WriteLine("FAILED TO LOAD OLD DB {0}", ex);
+#endif
 					shouldLoadFresh = true;
 				}
 			} else {
@@ -298,12 +309,19 @@ namespace SongDetailsCache {
 					using(var stream = db.stream) {
 						Process(stream);
 						await DataGetter.WriteCachedDatabase(db);
+#if DEBUG
+						Console.WriteLine("WROTE CACHED DB");
+#endif
+
 					}
 				}
 
 				if(!isDataAvailable)
 					throw new Exception("Data load failed for unknown reason");
 			} catch(Exception ex) {
+#if DEBUG
+				Console.WriteLine("NEW DL ERROR: {0}", ex);
+#endif
 				if(!isDataAvailable) {
 					dataLoadFailedInternal?.Invoke(ex);
 					dataLoadFailed?.Invoke(ex);
