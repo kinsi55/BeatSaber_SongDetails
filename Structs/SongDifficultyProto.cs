@@ -96,7 +96,7 @@ namespace SongDetailsCache.Structs {
                 if(stars <= 0.05 || !ranked)
                     return 0;
 
-                return stars * (45f + ((10f - stars) / 7f));
+                return stars * 42.108f * (1.11f - ((.055f / 14f) * stars));
             }
         }
     }
