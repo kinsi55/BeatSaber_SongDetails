@@ -118,7 +118,7 @@ namespace SongDetailsCache {
 			var idx = Array.BinarySearch(SongDetailsContainer.keys, key);
 
 			if(idx == -1) {
-				song = SongDetailsContainer.songs[0];
+				song = Song.none;
 				return false;
 			}
 

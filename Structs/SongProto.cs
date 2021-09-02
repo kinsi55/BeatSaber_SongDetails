@@ -44,15 +44,17 @@ namespace SongDetailsCache.Structs {
             this.diffOffset = diffOffset;
             this.diffCount = diffCount;
 
-            bpm = proto.bpm;
-            downloadCount = proto.downloadCount;
-            upvotes = proto.upvotes;
-            downvotes = proto.downvotes;
-            uploadTimeUnix = proto.uploadTimeUnix;
-            rankedChangeUnix = proto.rankedChangeUnix;
-            songDurationSeconds = proto.songDurationSeconds;
-            rankedStatus = proto.rankedState;
+            bpm = proto?.bpm ?? 0;
+            downloadCount = proto?.downloadCount ?? 0;
+            upvotes = proto?.upvotes ?? 0;
+            downvotes = proto?.downvotes ?? 0;
+            uploadTimeUnix = proto?.uploadTimeUnix ?? 0;
+            rankedChangeUnix = proto?.rankedChangeUnix ?? 0;
+            songDurationSeconds = proto?.songDurationSeconds ?? 0;
+            rankedStatus = proto?.rankedState ?? 0;
         }
+
+        public static Song none => new Song(uint.MinValue, 0, 0, null);
 
         public readonly float bpm;
         public readonly uint downloadCount;
