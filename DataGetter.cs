@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -26,7 +27,7 @@ namespace SongDetailsCache {
 			public MemoryStream stream;
 		}
 
-		public static async Task<DownloadedDatabase> UpdateAndReadDatabase(string dataSource = "Direct") {
+		public static async Task<DownloadedDatabase> UpdateAndReadDatabase(string _dataSource = "Direct") {
 			if(client == null) {
 				client = new HttpClient(new HttpClientHandler() {
 					AutomaticDecompression = DecompressionMethods.None,
@@ -36,9 +37,13 @@ namespace SongDetailsCache {
 				client.DefaultRequestHeaders.ConnectionClose = true;
 			}
 
+			var dataSource = dataSources.Keys.FirstOrDefault(x => x == _dataSource) ?? "Direct";
+
 			using(var req = new HttpRequestMessage(HttpMethod.Get, dataSources[dataSource])) {
-				if(File.Exists(cachePathEtag(dataSource)))
-					req.Headers.Add("If-None-Match", File.ReadAllText(cachePathEtag(dataSource)));
+				try {
+					if(File.Exists(cachePathEtag(dataSource)))
+						req.Headers.Add("If-None-Match", File.ReadAllText(cachePathEtag(dataSource)));
+				} catch { }
 
 				using(var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead)) {
 					if(resp.StatusCode == HttpStatusCode.NotModified)

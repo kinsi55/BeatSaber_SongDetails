@@ -294,11 +294,11 @@ namespace SongDetailsCache {
 
 			Exception ex = null;
 
-			foreach(var source in new [] {"Default", "JSDelivr" }) {
+			foreach(var source in new [] { "Direct", "JSDelivr" }) {
 				try {
 					var db = await DataGetter.UpdateAndReadDatabase(source);
 					if(db == null)
-						return;
+						break;
 
 					using(var stream = db.stream) {
 						Process(stream);
