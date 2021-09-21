@@ -30,6 +30,8 @@ namespace SongDetailsCache.Structs {
         [ProtoMember(15)] public readonly RankedStatus rankedState;
 
         [ProtoMember(13, OverwriteList = true)] internal readonly SongDifficultyProto[] difficulties;
+
+        [ProtoMember(16)] public readonly string uploaderName;
 #pragma warning restore 649
 
         SongProto() {
@@ -141,6 +143,8 @@ namespace SongDetailsCache.Structs {
         public readonly string levelAuthorName => SongDetailsContainer.levelAuthorNames[index];
 
         public readonly string coverURL => $"https://cdn.beatsaver.com/{hash.ToLower()}.jpg";
+
+        public readonly string uploaderName => SongDetailsContainer.uploaderNames[index];
 
         /// <summary>
         /// Helper method to get a difficulty of this Song

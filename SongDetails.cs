@@ -245,6 +245,7 @@ namespace SongDetailsCache {
 		internal static string[] songNames = null;
 		internal static string[] songAuthorNames = null;
 		internal static string[] levelAuthorNames = null;
+		internal static string[] uploaderNames = null;
 
 
 		internal static DateTime scrapeEndedTimeUnix;
@@ -367,6 +368,7 @@ namespace SongDetailsCache {
 			var newSongNames = new string[parsed.Length];
 			var newSongAuthorNames = new string[parsed.Length];
 			var newLevelAuthorNames = new string[parsed.Length];
+			var newUploaderNames = new string[parsed.Length];
 
 			var newDiffs = new SongDifficulty[parsed.Sum(x => x.difficulties?.Length ?? 0)];
 
@@ -387,6 +389,7 @@ namespace SongDetailsCache {
 				newSongNames[i] = parsedSong.songName;
 				newSongAuthorNames[i] = parsedSong.songAuthorName;
 				newLevelAuthorNames[i] = parsedSong.levelAuthorName;
+				newUploaderNames[i] = parsedSong.uploaderName;
 
 				if(parsedSong.difficulties == null)
 					continue;
@@ -430,6 +433,7 @@ namespace SongDetailsCache {
 			songNames = newSongNames;
 			songAuthorNames = newSongAuthorNames;
 			levelAuthorNames = newLevelAuthorNames;
+			uploaderNames = newUploaderNames;
 
 			difficulties = newDiffs;
 

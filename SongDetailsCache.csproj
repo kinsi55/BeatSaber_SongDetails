@@ -4,7 +4,7 @@
     <LangVersion>8</LangVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Kinsi55</Authors>
-    <Version>1.1.7</Version>
+    <Version>1.1.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
