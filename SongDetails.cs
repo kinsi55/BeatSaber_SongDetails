@@ -297,14 +297,15 @@ namespace SongDetailsCache {
 			foreach(var source in new [] {"Default", "JSDelivr" }) {
 				try {
 					var db = await DataGetter.UpdateAndReadDatabase(source);
-					if(db != null) {
-						using(var stream = db.stream) {
-							Process(stream);
-							await DataGetter.WriteCachedDatabase(db);
+					if(db == null)
+						return;
+
+					using(var stream = db.stream) {
+						Process(stream);
+						await DataGetter.WriteCachedDatabase(db);
 #if DEBUG
-							Console.WriteLine("WROTE CACHED DB");
+						Console.WriteLine("WROTE CACHED DB");
 #endif
-						}
 					}
 
 					if(!isDataAvailable)
