@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace SongDetailsCache {
 	static class DataGetter {
 		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
-			{ "Direct", "https://raww.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz" },
+			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz" },
 			// Caches stuff for 12 hours, but at least its a way to get the data at all for people behind China Firewall
 			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz" }
 		};
