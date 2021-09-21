@@ -265,7 +265,6 @@ namespace SongDetailsCache {
 			FileInfo fInfo = new FileInfo(DataGetter.cachePath);
 
 			bool shouldLoadFresh = false;
-			string oldEtag = null;
 
 			// Might as well always load the cached one so thats there while we (possibly) download fresh data.
 			if(fInfo.Exists) {
@@ -275,22 +274,11 @@ namespace SongDetailsCache {
 							Process(cachedStream, false);
 					}
 
-#if DEBUG
-					Console.WriteLine("ETAG?? {0}", DataGetter.cachePathEtag);
-#endif
-					if(File.Exists(DataGetter.cachePathEtag)) {
-						oldEtag = File.ReadAllText(DataGetter.cachePathEtag);
-
-#if DEBUG
-						Console.WriteLine("ETAG {0}", oldEtag);
-#endif
-					}
-
 					if(DateTime.UtcNow - scrapeEndedTimeUnix > TimeSpan.FromHours(Math.Max(1, acceptibleAgeHours)))
 						shouldLoadFresh = true;
-				} catch(Exception ex) {
+				} catch(Exception _ex) {
 #if DEBUG
-					Console.WriteLine("FAILED TO LOAD OLD DB {0}", ex);
+					Console.WriteLine("FAILED TO LOAD OLD DB {0}", _ex);
 #endif
 					shouldLoadFresh = true;
 				}
@@ -303,30 +291,38 @@ namespace SongDetailsCache {
 				return;
 			}
 
-			try {
-				var db = await DataGetter.UpdateAndReadDatabase(oldEtag);
-				if(db != null) {
-					using(var stream = db.stream) {
-						Process(stream);
-						await DataGetter.WriteCachedDatabase(db);
-#if DEBUG
-						Console.WriteLine("WROTE CACHED DB");
-#endif
+			Exception ex = null;
 
+			foreach(var source in new [] {"Default", "JSDelivr" }) {
+				try {
+					var db = await DataGetter.UpdateAndReadDatabase(source);
+					if(db != null) {
+						using(var stream = db.stream) {
+							Process(stream);
+							await DataGetter.WriteCachedDatabase(db);
+#if DEBUG
+							Console.WriteLine("WROTE CACHED DB");
+#endif
+						}
 					}
-				}
 
-				if(!isDataAvailable)
-					throw new Exception("Data load failed for unknown reason");
-			} catch(Exception ex) {
+					if(!isDataAvailable)
+						throw new Exception("Data load failed for unknown reason");
+
+					break;
+				} catch(Exception _ex) {
 #if DEBUG
-				Console.WriteLine("NEW DL ERROR: {0}", ex);
+					Console.WriteLine("NEW DL ERROR: {0}", ex);
 #endif
-				if(!isDataAvailable) {
-					dataLoadFailedInternal?.Invoke(ex);
-					dataLoadFailed?.Invoke(ex);
+					ex = _ex;
 				}
 			}
+
+			if(!isDataAvailable) {
+				dataLoadFailedInternal?.Invoke(ex);
+				dataLoadFailed?.Invoke(ex);
+			}
+
 			SongDetails.isLoading = false;
 		}
 
