@@ -117,7 +117,7 @@ namespace SongDetailsCache {
 		public bool FindByMapId(uint key, out Song song) {
 			var idx = Array.BinarySearch(SongDetailsContainer.keys, key);
 
-			if(idx == -1) {
+			if(idx < 0) {
 				song = Song.none;
 				return false;
 			}
