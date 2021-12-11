@@ -19,8 +19,7 @@
 
   <ItemGroup>
     <Reference Include="protobuf-net">
-      <HintPath>E:\SteamLibrary\steamapps\common\Beat Saber\Libs\protobuf-net.dll</HintPath>
-      <Private>false</Private>
+      <HintPath>..\protobuf-net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

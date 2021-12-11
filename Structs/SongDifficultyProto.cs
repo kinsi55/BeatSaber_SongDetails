@@ -88,15 +88,15 @@ namespace SongDetailsCache.Structs {
         public ref Song song => ref SongDetailsContainer.songs[songIndex];
 
         /// <summary>
-        /// Returns an approximated PP value of the possible #1 ScoreSaber score.
-        /// Its usually within 5pp of the real value.
+        /// Returns the PP value of a 95% Accuracy score
         /// </summary>
         public float approximatePpValue {
             get {
                 if(stars <= 0.05 || !ranked)
                     return 0;
 
-                return stars * 42.108f * (1.11f - ((.055f / 14f) * stars));
+                // 42.1f * 1.046f
+                return stars * 43.146f;// * PPUtils.PPPercentage(.95f + f1 - (stars * (f1/ 14f)));
             }
         }
     }
