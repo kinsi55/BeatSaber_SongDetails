@@ -9,12 +9,12 @@ using System.Collections.Generic;
 
 namespace SongDetailsCache {
 	static class DataGetter {
-		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
-			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz" },
+		public static readonly IReadOnlyDictionary<string, (string, TimeSpan)> dataSources = new Dictionary<string, (string, TimeSpan)>() {
+			{ "Direct", ("https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz", TimeSpan.FromSeconds(25)) },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz" },
+			{ "JSDelivr", ("https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(25)) },
 			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", "https://beatmods.gtxcn.com/github/BeatSaberScrappedData/songDetails2.gz" }
+			{ "WGzeyu", ("https://beatmods.gtxcn.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(50)) }
 		};
 
 		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
@@ -29,7 +29,7 @@ namespace SongDetailsCache {
 			public MemoryStream stream;
 		}
 
-		public static async Task<DownloadedDatabase> UpdateAndReadDatabase(string _dataSource = "Direct") {
+		public static async Task<DownloadedDatabase> UpdateAndReadDatabase(string dataSourceName = "Direct") {
 			if(client == null) {
 				client = new HttpClient(new HttpClientHandler() {
 					AutomaticDecompression = DecompressionMethods.None,
@@ -39,12 +39,14 @@ namespace SongDetailsCache {
 				client.DefaultRequestHeaders.ConnectionClose = true;
 			}
 
-			var dataSource = dataSources.Keys.FirstOrDefault(x => x == _dataSource) ?? "Direct";
+			dataSourceName = dataSources.Keys.FirstOrDefault(x => x == dataSourceName) ?? dataSources.Keys.First();
+			var dataSource = dataSources[dataSourceName];
 
-			using(var req = new HttpRequestMessage(HttpMethod.Get, dataSources[dataSource])) {
+			client.Timeout = dataSource.Item2;
+			using(var req = new HttpRequestMessage(HttpMethod.Get, dataSource.Item1)) {
 				try {
-					if(File.Exists(cachePathEtag(dataSource)))
-						req.Headers.Add("If-None-Match", File.ReadAllText(cachePathEtag(dataSource)));
+					if(File.Exists(cachePathEtag(dataSourceName)))
+						req.Headers.Add("If-None-Match", File.ReadAllText(cachePathEtag(dataSourceName)));
 				} catch { }
 
 				using(var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead)) {
@@ -61,7 +63,7 @@ namespace SongDetailsCache {
 						//Returning the file handle so we can end the HTTP request
 						fs.Position = 0;
 						return new DownloadedDatabase() {
-							source = dataSource,
+							source = dataSourceName,
 							etag = resp.Headers.ETag.Tag,
 							stream = fs
 						};

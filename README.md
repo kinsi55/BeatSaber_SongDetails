@@ -32,8 +32,9 @@ There are also two statically available events on SongDetailsContainer, dataAvai
 	- Level Author
 - BeatSaver Information
 	- Map ID (Numeric and Hexadecimal)
+	- Uploader name
 	- Song cover URL
-	- Downloads
+	- Download Count (While Exposed - BeatSaver does not really track this at the moment)
 	- Upvotes
 	- Downvotes
 	- Rating

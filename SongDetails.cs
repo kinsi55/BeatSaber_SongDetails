@@ -294,7 +294,7 @@ namespace SongDetailsCache {
 
 			Exception ex = null;
 
-			foreach(var source in new [] { "Direct", "JSDelivr" }) {
+			foreach(var source in DataGetter.dataSources.Keys) {
 				try {
 					var db = await DataGetter.UpdateAndReadDatabase(source);
 					if(db == null)
