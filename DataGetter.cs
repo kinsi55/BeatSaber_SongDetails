@@ -10,11 +10,11 @@ using System.Collections.Generic;
 namespace SongDetailsCache {
 	static class DataGetter {
 		public static readonly IReadOnlyDictionary<string, (string, TimeSpan)> dataSources = new Dictionary<string, (string, TimeSpan)>() {
-			{ "Direct", ("https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz", TimeSpan.FromSeconds(25)) },
+			{ "Direct", ("https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz", TimeSpan.FromSeconds(10)) },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", ("https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(25)) },
+			{ "JSDelivr", ("https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(12)) },
 			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", ("https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(50)) }
+			{ "WGzeyu", ("https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(20)) }
 		};
 
 		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
