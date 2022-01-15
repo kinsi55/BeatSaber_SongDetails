@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 namespace SongDetailsCache.Structs {
-    public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2 }
+    public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2, Queued = 3 }
 
     [ProtoContract]
     class SongProto {
