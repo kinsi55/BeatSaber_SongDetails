@@ -33,6 +33,7 @@ namespace SongDetailsCache {
 		internal SongArray() { }
 
 
+		const float hashLookupDivisorInverse = 1f / uint.MaxValue;
 		/// <summary>
 		/// Gets a song using its Map Hash
 		/// </summary>
@@ -41,7 +42,7 @@ namespace SongDetailsCache {
 		/// <returns>True if the song was found, false otherwise</returns>
 		public unsafe bool FindByHash(string hash, out Song song) {
 			if(hash.Length != 40) {
-				song = SongDetailsContainer.songs[0];
+				song = Song.none;
 				return false;
 			}
 
@@ -57,7 +58,7 @@ namespace SongDetailsCache {
 
 				// This episode of optimization is sponsored by "Average"
 				// Will this become slower over time? Yes. Will this ever be slow? No.
-				uint searchNeedle = (uint)Math.Floor(SongDetailsContainer.songs.Length * (c1 / (float)(uint.MaxValue)));
+				uint searchNeedle = (uint)(SongDetailsContainer.songs.Length * c1 * hashLookupDivisorInverse);
 
 				// Yeaaahh it would be better to step left right left right in an alternating fashion but
 				// this is already way faster than it needs to be and less complicated :) Maybe later.
