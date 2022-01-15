@@ -39,7 +39,7 @@ namespace SongDetailsCache {
             var lookupP = _lookup32UnsafeP;
             var result = new string((char)0, SongDetailsContainer.HASH_SIZE_BYTES * 2);
             fixed(char* resultP = result) {
-                byte* SrcP2 = SongDetailsContainer.hashBytes + (index * 20);
+                byte* SrcP2 = SongDetailsContainer.hashBytes + (index * SongDetailsContainer.HASH_SIZE_BYTES);
                 uint* resultP2 = (uint*)resultP;
                 for(int i = 0; i < SongDetailsContainer.HASH_SIZE_BYTES; i++)
                     resultP2[i] = lookupP[SrcP2[i]];
