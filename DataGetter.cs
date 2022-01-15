@@ -14,7 +14,7 @@ namespace SongDetailsCache {
 			// Caches stuff for 12 hours as backup
 			{ "JSDelivr", ("https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(25)) },
 			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", ("https://beatmods.gtxcn.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(50)) }
+			{ "WGzeyu", ("https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(50)) }
 		};
 
 		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
