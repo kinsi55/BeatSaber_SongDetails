@@ -166,6 +166,23 @@ namespace SongDetailsCache.Structs {
             return false;
         }
 
+        public bool GetDifficulty(out SongDifficulty difficulty, MapDifficulty diff, string characteristic) {
+            if(characteristic == "Standard")
+                return GetDifficulty(out difficulty, diff);
+
+            if(characteristic == "360Degree" || characteristic == "Degree360" || characteristic == "ThreeSixtyDegree")
+                return GetDifficulty(out difficulty, diff, MapCharacteristic.ThreeSixtyDegree);
+
+            if(characteristic == "90Degree" || characteristic == "Degree90" || characteristic == "NinetyDegree")
+                return GetDifficulty(out difficulty, diff, MapCharacteristic.NinetyDegree);
+
+            if(Enum.TryParse<MapCharacteristic>(characteristic, out var pDiff))
+                return GetDifficulty(out difficulty, diff, pDiff);
+
+            difficulty = SongDetailsContainer.difficulties[0];
+            return false;
+        }
+
         /// <summary>
         /// All difficulties that belong to this Song
         /// </summary>
