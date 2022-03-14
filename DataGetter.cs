@@ -20,8 +20,9 @@ namespace SongDetailsCache {
 		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
 
 		private static HttpClient client = null;
-		public static string cachePath = Path.Combine(Environment.CurrentDirectory, "UserData", "SongDetailsCache.proto");
-		public static string cachePathEtag(string source) => Path.Combine(Environment.CurrentDirectory, "UserData", $"SongDetailsCache.proto.{source}.etag");
+		public static string basePath = Path.Combine(Environment.CurrentDirectory, "UserData");
+		public static string cachePath => Path.Combine(basePath, "SongDetailsCache.proto");
+		public static string cachePathEtag(string source) => Path.Combine(basePath, $"SongDetailsCache.proto.{source}.etag");
 
 		public class DownloadedDatabase {
 			public string source;

@@ -160,6 +160,17 @@ namespace SongDetailsCache {
 			return ret;
 		}
 
+		/// <summary>
+		/// Sets the Directory in which SongDetails will cache its downloaded databases
+		/// </summary>
+		/// <param name="path"></param>
+		public void SetCacheDirectory(string path) {
+			if(!Directory.Exists(path))
+				throw new DirectoryNotFoundException("Directory doesnt exist");
+
+			DataGetter.basePath = path;
+		}
+
 
 
 		/// <summary>
