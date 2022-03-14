@@ -11,6 +11,8 @@ Everything is exposed in the `SongDetailsCache.SongDetails` class.
 
 To use this library you aquire an Instance of the SongDetails class by calling `SongDetails.Init()` and awaiting the result. This will handle possibly downloading / parsing the database if it is not cached in memory yet, otherwise it will reuse what is already there.
 
+The downloaded Databases get cached for a while, by default they are stored in "`Environment.CurrentDirectory`/UserData" - You can override the Folder to store them in using `SongDetails.SetCacheDirectory(string path)`. Keep in mind this is a global override.
+
 1. songs => Custom, readonly array of all songs. Has exposed methods for finding songs based off their Map ID or Hash
 2. difficulties => Custom, readonly array of all difficulties of all songs. Due to how this library is built you should ideally not access `<Song>.difficulties` for iteration purposes but instead iterate over difficulties and access `<SongDifficulty>.song`. Alternatively you can use the exposed convenience methods of `SongDetails` like `FindSongs` to find all Songs based off certain difficulty criteria.
 
