@@ -9,12 +9,12 @@ using System.Collections.Generic;
 
 namespace SongDetailsCache {
 	static class DataGetter {
-		public static readonly IReadOnlyDictionary<string, (string, TimeSpan)> dataSources = new Dictionary<string, (string, TimeSpan)>() {
-			{ "Direct", ("https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz", TimeSpan.FromSeconds(10)) },
+		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
+			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz" },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", ("https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(12)) },
+			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz" },
 			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", ("https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz", TimeSpan.FromSeconds(20)) }
+			{ "WGzeyu", "https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz" }
 		};
 
 		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
@@ -37,13 +37,17 @@ namespace SongDetailsCache {
 				});
 
 				client.DefaultRequestHeaders.ConnectionClose = true;
+
+				// For some reason this can throw some times?!
+				try {
+					client.Timeout = TimeSpan.FromSeconds(20);
+				} catch { }
 			}
 
 			dataSourceName = dataSources.Keys.FirstOrDefault(x => x == dataSourceName) ?? dataSources.Keys.First();
 			var dataSource = dataSources[dataSourceName];
 
-			client.Timeout = dataSource.Item2;
-			using(var req = new HttpRequestMessage(HttpMethod.Get, dataSource.Item1)) {
+			using(var req = new HttpRequestMessage(HttpMethod.Get, dataSource)) {
 				try {
 					if(File.Exists(cachePathEtag(dataSourceName)))
 						req.Headers.Add("If-None-Match", File.ReadAllText(cachePathEtag(dataSourceName)));
