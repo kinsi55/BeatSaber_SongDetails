@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace SongDetailsCache.Structs {
 	public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2, Queued = 3 }
-	[Flags] public enum RankedStates : uint { Unranked, BeatleaderRanked = 1 << 0, ScoresaberRanked = 1 << 1, ScoresaberQualified = 1 << 2, BeatleaderQualified = 1 << 3 }
+	[Flags] public enum RankedStates : uint { Unranked, ScoresaberRanked = 1 << 0, BeatleaderRanked = 1 << 1, ScoresaberQualified = 1 << 2, BeatleaderQualified = 1 << 3 }
 
 	[ProtoContract]
 	class SongProto {
