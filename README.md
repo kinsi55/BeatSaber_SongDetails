@@ -41,9 +41,9 @@ There are also two statically available events on SongDetailsContainer, dataAvai
 	- Downvotes
 	- Rating
 	- Upload timestamp
-- ScoreSaber Information
+- Ranked Information (ScoreSaber & BeatLeader)
 	- If any of the diffs are ranked or qualified
-	- Unix Timestamp of when the Ranked state changed
+	- Unix Timestamp of when the Ranked state changed (Combined)
 
 ### Song Difficulties
 - General Information
@@ -51,8 +51,5 @@ There are also two statically available events on SongDetailsContainer, dataAvai
 	- Bombs / Notes / Obstacles count
 	- Characteristic
 	- Mods (Noodle Extensions / Mapping Extensions / Chroma / Cinema)
-- ScoreSaber Information
+- Ranked Information (ScoreSaber & BeatLeader)
 	- Star rating (0 if not ranked)
-	- Approximate achieveable #1 PP value
-		- Uses a custom curve
-		- Usually the error is way less than 5pp of the actual #1 score but some outliers exist
