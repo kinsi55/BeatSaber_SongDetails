@@ -371,7 +371,8 @@ namespace SongDetailsCache {
 
 
 			// Stuff gotta be sorted for Binary search (Key lookup) to work.
-			parsed = parsed.OrderBy(x => x.mapId).ToArray();
+			// Starting with V3, its presorted in the dataset
+			//parsed = parsed.OrderBy(x => x.mapId).ToArray();
 #if DEBUG
 			Console.WriteLine("[SongDetailsCache] Sorted in {1}ms", parsed.Length, sw.ElapsedMilliseconds);
 
