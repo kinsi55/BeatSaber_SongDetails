@@ -4,42 +4,43 @@ using System.Collections.Generic;
 
 namespace SongDetailsCache.Structs {
 	public enum RankedStatus : uint { Unranked, Ranked = 1, Qualified = 2, Queued = 3 }
-	[Flags] public enum RankedStates : uint { Unranked, ScoresaberRanked = 1 << 0, BeatleaderRanked = 1 << 1, ScoresaberQualified = 1 << 2, BeatleaderQualified = 1 << 3 }
+	[Flags] 
+	public enum RankedStates : uint { Unranked, ScoresaberRanked = 1 << 0, BeatleaderRanked = 1 << 1, ScoresaberQualified = 1 << 2, BeatleaderQualified = 1 << 3 }
+	[Flags] 
+	public enum UploadFlags : uint { None, Curated = 1 << 0, VerifiedUploader = 1 << 1 }
 
 	[ProtoContract]
 	class SongProto {
 #pragma warning disable 649
 		[ProtoMember(1)] public readonly float bpm;
-		[ProtoMember(2)] public readonly uint downloadCount;
-		[ProtoMember(3)] public readonly uint upvotes;
-		[ProtoMember(4)] public readonly uint downvotes;
+		public readonly uint downloadCount;
+		[ProtoMember(2)] public readonly uint upvotes;
+		[ProtoMember(3)] public readonly uint downvotes;
 
-		[ProtoMember(5)] public readonly uint uploadTimeUnix;
-		[ProtoMember(14)] public readonly uint rankedChangeUnix;
+		[ProtoMember(4)] public readonly uint uploadTimeUnix;
+		[ProtoMember(12)] public readonly uint rankedChangeUnix;
 
-		[ProtoMember(6)] public readonly uint mapId;
+		[ProtoMember(5)] public readonly uint mapId;
 
-		[ProtoMember(8)] public readonly uint songDurationSeconds;
-
-		[ProtoMember(9, OverwriteList = true)] public readonly byte[] hashBytes;
+		[ProtoMember(6)] public readonly uint songDurationSeconds;
 
 
-		[ProtoMember(10)] public readonly string songName;
-		[ProtoMember(11)] public readonly string songAuthorName;
-		[ProtoMember(12)] public readonly string levelAuthorName;
+		[ProtoMember(7)] public readonly string songName;
+		[ProtoMember(8)] public readonly string songAuthorName;
+		[ProtoMember(9)] public readonly string levelAuthorName;
+		[ProtoMember(10)] public readonly string uploaderName;
 
-		[ProtoMember(15)] public readonly RankedStatus rankedState;
+		[ProtoMember(13)] public readonly RankedStates rankedStates;
 
-		[ProtoMember(17)] public readonly RankedStates rankedStates;
+		[ProtoMember(11, OverwriteList = true)] internal readonly SongDifficultyProto[] difficulties;
 
-		[ProtoMember(13, OverwriteList = true)] internal readonly SongDifficultyProto[] difficulties;
+		[ProtoMember(14)] public readonly ulong tags;
+		[ProtoMember(15)] public readonly UploadFlags uploadFlags;
 
-		[ProtoMember(16)] public readonly string uploaderName;
 #pragma warning restore 649
 
 		SongProto() {
 			songDurationSeconds = 1;
-			rankedState = RankedStatus.Unranked;
 		}
 	}
 
@@ -56,8 +57,9 @@ namespace SongDetailsCache.Structs {
 			uploadTimeUnix = proto?.uploadTimeUnix ?? 0;
 			rankedChangeUnix = proto?.rankedChangeUnix ?? 0;
 			songDurationSeconds = proto?.songDurationSeconds ?? 0;
-			rankedStatus = proto?.rankedState ?? 0;
 			rankedStates = proto?.rankedStates ?? 0;
+			uploadFlags = proto?.uploadFlags ?? 0;
+			tags = proto?.tags ?? 0;
 		}
 
 		public static Song none => new Song(uint.MinValue, 0, 0, null);
@@ -133,15 +135,21 @@ namespace SongDetailsCache.Structs {
 		public readonly uint mapId => SongDetailsContainer.keys[index];
 
 		/// <summary>
-		/// Ranked status of the map on ScoreSaber
-		/// </summary>
-		[Obsolete("rankedStatus has been replaced in favor of rankedStates and will be removed in the future")]
-		public readonly RankedStatus rankedStatus;
-
-		/// <summary>
 		/// Ranked status of the map on ScoreSaber and BeatLeader
 		/// </summary>
 		public readonly RankedStates rankedStates;
+
+		/// <summary>
+		/// The BeatSaver Tags set for this map like Genre and Map Type
+		/// This is a bitflag field, the respective bits value of a tag can be retrieved from
+		/// the SongDetails.tags Dictionary
+		/// </summary>
+		public readonly ulong tags;
+
+		/// <summary>
+		/// Some additional Flags / Details for an upload
+		/// </summary>
+		public readonly UploadFlags uploadFlags;
 
 		/// <summary>
 		/// Hexadecimal representation of the Map Hash
@@ -155,6 +163,21 @@ namespace SongDetailsCache.Structs {
 		public readonly string coverURL => $"https://cdn.beatsaver.com/{hash.ToLower()}.jpg";
 
 		public readonly string uploaderName => SongDetailsContainer.uploaderNames[index];
+
+		/// <summary>
+		/// Helper method to check if the Song has a tag set
+		/// </summary>
+		/// <param name="tag">String representation of the BeatSaver Tag</param>
+		/// <returns>True if the Tag is set for the Song</returns>
+		public bool HasTag(string tag) {
+			if(tags == 0)
+				return false;
+
+			if(SongDetailsContainer.tags != null && SongDetailsContainer.tags.TryGetValue(tag, out var v))
+				return (tags & v) != 0;
+
+			return false;
+		}
 
 		/// <summary>
 		/// Helper method to get a difficulty of this Song

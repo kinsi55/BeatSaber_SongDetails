@@ -10,14 +10,12 @@ using System.Collections.Generic;
 namespace SongDetailsCache {
 	static class DataGetter {
 		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
-			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2.gz" },
+			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2_v3.gz" },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2.gz" },
+			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2_v3.gz" },
 			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", "https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2.gz" }
+			{ "WGzeyu", "https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2_v3.gz" }
 		};
-
-		//const string dataUrl = "http://127.0.0.1/SongDetailsCache.proto.gz";
 
 		private static HttpClient client = null;
 		public static string basePath = Path.Combine(Environment.CurrentDirectory, "UserData");
@@ -63,6 +61,8 @@ namespace SongDetailsCache {
 
 					using(var stream = await resp.Content.ReadAsStreamAsync()) {
 						var fs = new MemoryStream();
+						//using(var decompressor = new BrotliStream(stream, CompressionMode.Decompress))
+						//	await decompressor.CopyToAsync(fs);
 						using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
 							await decompressed.CopyToAsync(fs);
 						//Returning the file handle so we can end the HTTP request
