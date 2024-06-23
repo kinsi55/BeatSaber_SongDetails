@@ -133,6 +133,9 @@ namespace SongDetailsCache {
 
 		public readonly SongArray songs = new SongArray();
 		public readonly DiffArray difficulties = new DiffArray();
+		public ImmutableDictionary<string, ulong> tags {
+			get => SongDetailsContainer.tags;
+		}
 
 		internal static readonly SongDetails auros = new SongDetails();
 
@@ -251,6 +254,7 @@ namespace SongDetailsCache {
 		internal const int HASH_SIZE_BYTES = 20;
 
 		internal static uint[] keys = null;
+		internal unsafe static GCHandle? hashBytesGC = null;
 		internal unsafe static byte* hashBytes = null;
 		internal unsafe static uint* hashBytesLUT = null;
 
@@ -258,6 +262,8 @@ namespace SongDetailsCache {
 		internal static string[] songAuthorNames = null;
 		internal static string[] levelAuthorNames = null;
 		internal static string[] uploaderNames = null;
+
+		internal static ImmutableDictionary<string, ulong> tags = null;
 
 
 		internal static DateTime scrapeEndedTimeUnix;
@@ -348,7 +354,7 @@ namespace SongDetailsCache {
 #endif
 
 			var parsedContainer = Serializer.Deserialize<SongProtoContainer>(stream);
-			if(parsedContainer.formatVersion > 2)
+			if(parsedContainer.formatVersion != 3)
 				throw new Exception("Invalid SongDetails Data dump version. Please Update SongDetails.");
 
 			scrapeEndedTimeUnix = DateTimeOffset.FromUnixTimeSeconds(parsedContainer.scrapeEndedTimeUnix).DateTime;
@@ -375,7 +381,8 @@ namespace SongDetailsCache {
 			var newSongs = new Song[parsed.Length];
 
 			var newKeys = new uint[parsed.Length];
-			var newHashes = (byte*)Marshal.AllocHGlobal(parsed.Length * HASH_SIZE_BYTES);
+			var newHashesGC = GCHandle.Alloc(parsedContainer.songHashes, GCHandleType.Pinned);
+			var newHashes = (byte*)newHashesGC.AddrOfPinnedObject();
 			var newHashesLUT = (uint*)Marshal.AllocHGlobal(4 * parsed.Length);
 
 			var newSongNames = new string[parsed.Length];
@@ -392,12 +399,11 @@ namespace SongDetailsCache {
 			for(uint i = 0; i < parsed.Length; i++) {
 				var parsedSong = parsed[i];
 
-				newSongs[i] = new Song(i, diffIndex, (byte)Math.Min(255, parsedSong.difficulties?.Length ?? 0), parsedSong);
+				newSongs[i] = new Song(i, diffIndex, (byte)Math.Min(byte.MaxValue, parsedSong.difficulties?.Length ?? 0), parsedSong);
 
 				ref var builtSong = ref newSongs[i];
 
 				newKeys[i] = parsedSong.mapId;
-				Marshal.Copy(parsedSong.hashBytes, 0, (IntPtr)(newHashes + (i * HASH_SIZE_BYTES)), HASH_SIZE_BYTES);
 
 				newSongNames[i] = parsedSong.songName;
 				newSongAuthorNames[i] = parsedSong.songAuthorName;
@@ -406,7 +412,7 @@ namespace SongDetailsCache {
 
 				if(parsedSong.difficulties == null)
 					continue;
-					
+
 				foreach(var diff in parsedSong.difficulties)
 					newDiffs[diffIndex++] = new SongDifficulty(i, diff);
 			}
@@ -423,7 +429,7 @@ namespace SongDetailsCache {
 			Console.WriteLine("[SongDetailsCache] Built LUT...");
 #endif
 			if(!force && songs != null) {
-				Marshal.FreeHGlobal((IntPtr)newHashes);
+				newHashesGC.Free();
 				Marshal.FreeHGlobal((IntPtr)newHashesLUT);
 				return;
 			}
@@ -435,9 +441,12 @@ namespace SongDetailsCache {
 
 			keys = newKeys;
 
+			tags = parsedContainer.tagList?.Select((v, i) => ( v, (1UL << i) )).ToImmutableDictionary(x => x.v, x => x.Item2);
+
 			if(hashBytes != null)
-				Marshal.FreeHGlobal((IntPtr)hashBytes);
+				hashBytesGC?.Free();
 			hashBytes = newHashes;
+			hashBytesGC = newHashesGC;
 
 			if(hashBytesLUT != null)
 				Marshal.FreeHGlobal((IntPtr)hashBytesLUT);

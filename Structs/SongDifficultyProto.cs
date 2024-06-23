@@ -85,12 +85,6 @@ namespace SongDetailsCache.Structs {
 		public readonly MapMods mods;
 
 		/// <summary>
-		/// Returns if the Difficulty is ranked on ScoreSaber
-		/// </summary>
-		[Obsolete("This will be removed in the future, see .song.rankedStates")]
-		public bool ranked => stars > 0 && (song.rankedStates & RankedStates.ScoresaberRanked) != 0;
-
-		/// <summary>
 		/// The Song this Difficulty belongs to
 		/// </summary>
 		public ref Song song => ref SongDetailsContainer.songs[songIndex];
@@ -98,15 +92,9 @@ namespace SongDetailsCache.Structs {
 		/// <summary>
 		/// Returns the PP value of a 95% Accuracy score on Scoresaber
 		/// </summary>
-		[Obsolete("This will be removed in the future")]
+		[Obsolete("STUB: This will be removed in the future, currently included for backwards compat")]
 		public float approximatePpValue {
-			get {
-				if(stars <= 0.05 || !ranked)
-					return 0;
-
-				// 42.1f * 1.046f
-				return stars * 43.146f;// * PPUtils.PPPercentage(.95f + f1 - (stars * (f1/ 14f)));
-			}
+			get => 0;
 		}
 	}
 }
