@@ -57,6 +57,10 @@ namespace SongDetailsCache.Structs {
 			uploadTimeUnix = proto?.uploadTimeUnix ?? 0;
 			rankedChangeUnix = proto?.rankedChangeUnix ?? 0;
 			songDurationSeconds = proto?.songDurationSeconds ?? 0;
+			rankedStatus =
+				((proto?.rankedStates ?? 0).HasFlag(RankedStates.ScoresaberRanked)) ? RankedStatus.Ranked :
+				((proto?.rankedStates ?? 0).HasFlag(RankedStates.ScoresaberQualified)) ? RankedStatus.Qualified :
+				RankedStatus.Unranked;
 			rankedStates = proto?.rankedStates ?? 0;
 			uploadFlags = proto?.uploadFlags ?? 0;
 			tags = proto?.tags ?? 0;
@@ -133,6 +137,12 @@ namespace SongDetailsCache.Structs {
 		/// Numeric representation of the Map ID
 		/// </summary>
 		public readonly uint mapId => SongDetailsContainer.keys[index];
+		
+		/// <summary>
+		/// Ranked status of the map on ScoreSaber
+		/// </summary>
+		[Obsolete("rankedStatus has been replaced in favor of rankedStates and will be removed in the future")]
+		public readonly RankedStatus rankedStatus;
 
 		/// <summary>
 		/// Ranked status of the map on ScoreSaber and BeatLeader
