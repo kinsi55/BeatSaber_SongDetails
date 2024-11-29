@@ -12,9 +12,7 @@ namespace SongDetailsCache {
 		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
 			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2_v3.gz" },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2_v3.gz" },
-			// Caches stuff for 5 hours, bandwidth 512KB/s, but at least its a way to get the data at all for people behind China Firewall
-			{ "WGzeyu", "https://beatmods.wgzeyu.com/github/BeatSaberScrappedData/songDetails2_v3.gz" }
+			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2_v3.gz" }
 		};
 
 		private static HttpClient client = null;
