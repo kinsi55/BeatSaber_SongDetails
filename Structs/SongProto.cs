@@ -22,7 +22,7 @@ namespace SongDetailsCache.Structs {
 
 		[ProtoMember(5)] public readonly uint mapId;
 
-		[ProtoMember(6)] public readonly uint songDurationSeconds;
+		[ProtoMember(6)] public readonly uint songDurationSeconds = 1;
 
 
 		[ProtoMember(7)] public readonly string songName;
@@ -41,8 +41,6 @@ namespace SongDetailsCache.Structs {
 
 		SongProto() {
 			songDurationSeconds = 1;
-			// If they're equal, uploaderName is omitted from the dump
-			uploaderName ??= levelAuthorName;
 		}
 	}
 
@@ -174,7 +172,8 @@ namespace SongDetailsCache.Structs {
 
 		public readonly string coverURL => $"https://cdn.beatsaver.com/{hash.ToLower()}.jpg";
 
-		public readonly string uploaderName => SongDetailsContainer.uploaderNames[index];
+		// If they're equal, uploaderName is omitted from the dump
+		public readonly string uploaderName => SongDetailsContainer.uploaderNames[index] ?? levelAuthorName;
 
 		/// <summary>
 		/// Helper method to check if the Song has a tag set
