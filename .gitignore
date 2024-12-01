@@ -4,3 +4,4 @@ obj/*
 *.user
 HarmonyPatches/RemoveSplashscreen.cs
 HarmonyPatchHelper.cs
+SongDetailsCache BS Lib.zip

@@ -10,9 +10,9 @@ using System.Collections.Generic;
 namespace SongDetailsCache {
 	static class DataGetter {
 		public static readonly IReadOnlyDictionary<string, string> dataSources = new Dictionary<string, string>() {
-			{ "Direct", "https://raw.githubusercontent.com/andruzzzhka/BeatSaberScrappedData/master/songDetails2_v3.gz" },
+			{ "Direct", "https://raw.githubusercontent.com/kinsi55/BeatSaberScrappedData/master/songDetails2_v3.gz" },
 			// Caches stuff for 12 hours as backup
-			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/andruzzzhka/BeatSaberScrappedData/songDetails2_v3.gz" }
+			{ "JSDelivr", "https://cdn.jsdelivr.net/gh/kinsi55/BeatSaberScrappedData/songDetails2_v3.gz" }
 		};
 
 		private static HttpClient client = null;
@@ -61,6 +61,8 @@ namespace SongDetailsCache {
 						var fs = new MemoryStream();
 						//using(var decompressor = new BrotliStream(stream, CompressionMode.Decompress))
 						//	await decompressor.CopyToAsync(fs);
+
+						//stream.DecompressFromBrotli(fs);
 						using(var decompressed = new GZipStream(stream, CompressionMode.Decompress))
 							await decompressed.CopyToAsync(fs);
 						//Returning the file handle so we can end the HTTP request

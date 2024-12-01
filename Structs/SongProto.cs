@@ -41,6 +41,8 @@ namespace SongDetailsCache.Structs {
 
 		SongProto() {
 			songDurationSeconds = 1;
+			// If they're equal, uploaderName is omitted from the dump
+			uploaderName ??= levelAuthorName;
 		}
 	}
 
