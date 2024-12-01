@@ -15,7 +15,7 @@ namespace SongDetailsCache.Structs {
 	[ProtoContract]
 	class SongDifficultyProto {
 #pragma warning disable 649
-		[ProtoMember(1)] public readonly MapCharacteristic characteristic = MapCharacteristic.Standard;
+		[ProtoMember(1)] public readonly MapCharacteristic characteristic;
 		[ProtoMember(2)] public readonly MapDifficulty difficulty;
 
 		[ProtoMember(4)] public readonly uint starsT100;
