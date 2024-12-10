@@ -36,14 +36,16 @@ There are also two statically available events on SongDetailsContainer, dataAvai
 	- Map ID (Numeric and Hexadecimal)
 	- Uploader name
 	- Song cover URL
-	- Download Count (While Exposed - BeatSaver does not really track this at the moment)
+	- Download Count (While Exposed - BeatSaver does not really track this at the moment so its always 0)
 	- Upvotes
 	- Downvotes
 	- Rating
 	- Upload timestamp
+	- Song Genre / Map Type
+	- Flags (Map Curated / Mapper Verified)
 - Ranked Information (ScoreSaber & BeatLeader)
 	- If any of the diffs are ranked or qualified
-	- Unix Timestamp of when the Ranked state changed (Combined)
+	- Unix Timestamp of when the Ranked state changed (Combined / Latest of either)
 
 ### Song Difficulties
 - General Information
