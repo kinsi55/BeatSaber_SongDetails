@@ -78,13 +78,11 @@ namespace SongDetailsCache.Structs {
 		/// </summary>
 		public float rating {
 			get {
-				float tot = upvotes + downvotes;
-				if(tot == 0)
-					return 0;
+				double total = upvotes + downvotes;
 
-				var tmp = upvotes / tot;
+				var score = upvotes / total;
 
-				return (float)(tmp - (tmp - 0.5) * Math.Pow(2, -Math.Log10(tot + 1)));
+				return (float)(score - ((score - 0.5) * Math.Pow(2, -Math.Log((total / 2) + 1, 3))));
 			}
 		}
 
